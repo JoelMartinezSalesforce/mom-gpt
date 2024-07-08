@@ -17,6 +17,8 @@ if __name__ == '__main__':
         port='19530'
     )
 
+    print("connected to milvus local standalone")
+
     fields = [
         FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=False),
         FieldSchema(name="random", dtype=DataType.DOUBLE),
@@ -24,6 +26,7 @@ if __name__ == '__main__':
     ]
     schema = CollectionSchema(fields, "hello_milvus is the simplest demo to introduce the APIs")
     hello_milvus = Collection("hello_milvus", schema)
+    # collection_ = Collection("Second Collection", schema)
 
     entities = [
         [i for i in range(3000)],  # field pk
