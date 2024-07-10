@@ -3,38 +3,12 @@ import json
 import random
 import string
 
+from tqdm import tqdm
+
 
 class MockDataGenerator:
-    def __init__(self):
-        self.data_struct = {
-            "remote": {
-                "device": " ",
-                "interface": " ",
-                "site": " ",
-            },
-            "logical-indexes-json": "{\"702\":{\"site\":\"fra2\",\"device\":\"bbr10-fra5\","
-                                    "\"interface\":\"xe-0/0/11.0\"}}",
-            "interface": "xe-0/0/11.0",
-            "site": "fra2",
-            "collection-site": "fra",
-            "speed": 10000000000,
-            "util-updated": 1719433741046,
-            "type": "edge-interface",
-            "edge-latency": None,
-            "receive": 936.380357233664,
-            "if-index": "345",
-            "alias": " OnPremDDOS-M",
-            "status": "active",
-            "max": 936.380357233664,
-            "transmit": 106.8903065674496,
-            "device": "bbr100-fra50",
-            "isis-metric": None,
-            "percent": 0.00009363803572,
-            "edge-side": "aloc",
-            "util-datasource": "ArgusLOL",
-            "edge-speed": "",
-        }
-
+    def __init__(self, data_struct):
+        self.data_struct = data_struct
         self.data_path = '../dump/'
         self.data_exists = os.path.exists(self.data_path)
 
@@ -46,43 +20,54 @@ class MockDataGenerator:
     def _generate_random_string(length=10):
         return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-    def _generate_random_data(self):
-        random_data = self.data_struct.copy()
+    @staticmethod
+    def _generate_random_number(start=0, end=100):
+        return random.uniform(start, end)
 
-        # Generate random values for the fields, allowing some fields to be null
-        random_data['remote'] = {
-            "device": self._generate_random_string() if random.choice([True, False]) else None,
-            "interface": self._generate_random_string() if random.choice([True, False]) else None,
-            "site": self._generate_random_string() if random.choice([True, False]) else None,
-        } if random.choice([True, False]) else None
+    @staticmethod
+    def _generate_random_int(start=0, end=1000):
+        return random.randint(start, end)
 
-        random_data['logical-indexes-json'] = json.dumps({
-            str(random.randint(700, 800)): {
-                "site": self._generate_random_string(),
-                "device": self._generate_random_string(),
-                "interface": self._generate_random_string()
-            }
-        })
-        random_data['interface'] = self._generate_random_string()
-        random_data['site'] = self._generate_random_string()
-        random_data['collection-site'] = self._generate_random_string()
-        random_data['speed'] = random.randint(1000000000, 100000000000)
-        random_data['util-updated'] = random.randint(1609459200000, 1735689600000)  # Timestamp range for 2021-2024
-        random_data['type'] = self._generate_random_string()
-        random_data['edge-latency'] = random.choice([random.uniform(0, 100), None])
-        random_data['receive'] = random.uniform(0, 1000)
-        random_data['if-index'] = str(random.randint(200, 1000))
-        random_data['alias'] = self._generate_random_string()
-        random_data['status'] = random.choice(['active', 'inactive'])
-        random_data['max'] = random.uniform(0, 1000)
-        random_data['transmit'] = random.uniform(0, 1000)
-        random_data['device'] = self._generate_random_string()
-        random_data['isis-metric'] = random.choice([random.randint(1, 100), None])
-        random_data['percent'] = random.uniform(0, 1)
-        random_data['edge-side'] = random.choice([self._generate_random_string(), None])
-        random_data['util-datasource'] = self._generate_random_string()
-        random_data['edge-speed'] = random.choice([random.randint(1000000000, 100000000000), None])
-
+    def _generate_random_data(self, structure):
+        random_data = {}
+        for key, value in structure.items():
+            if isinstance(value, dict):
+                random_data[key] = self._generate_random_data(value)
+            elif isinstance(value, str):
+                if "interface" in key or "device" in key or "site" in key or "alias" in key or "type" in key or "util-datasource" in key:
+                    random_data[key] = self._generate_random_string()
+                elif "json" in key:
+                    random_data[key] = json.dumps({
+                        str(self._generate_random_int(700, 800)): {
+                            "site": self._generate_random_string(),
+                            "device": self._generate_random_string(),
+                            "interface": self._generate_random_string()
+                        }
+                    })
+                elif "status" in key:
+                    random_data[key] = random.choice(['active', 'inactive'])
+                elif "speed" in key:
+                    random_data[key] = self._generate_random_int(1000000000, 100000000000)
+                elif "percent" in key:
+                    random_data[key] = self._generate_random_number(0, 1)
+                elif "receive" in key or "transmit" in key or "max" in key:
+                    random_data[key] = self._generate_random_number(0, 1000)
+                elif "isis-metric" in key or "if-index" in key:
+                    random_data[key] = random.choice([self._generate_random_int(1, 100), None])
+                elif "util-updated" in key:
+                    random_data[key] = self._generate_random_int(1609459200000,
+                                                                 1735689600000)  # Timestamp range for 2021-2024
+                elif "edge-latency" in key:
+                    random_data[key] = random.choice([self._generate_random_number(0, 100), None])
+                elif "edge-side" in key:
+                    random_data[key] = random.choice([self._generate_random_string(), None])
+                else:
+                    random_data[key] = value
+            elif isinstance(value, (int, float)):
+                random_data[key] = self._generate_random_number() if isinstance(value,
+                                                                                float) else self._generate_random_int()
+            else:
+                random_data[key] = value
         return random_data
 
     def create_new_dump(self, n: int = 5) -> None:
@@ -93,7 +78,7 @@ class MockDataGenerator:
         """
         print("Creating a new Dump of data")
 
-        data = [self._generate_random_data() for _ in range(n)]
+        data = [self._generate_random_data(self.data_struct) for _ in tqdm(range(n), desc="Generating data")]
         file_path = os.path.join(self.data_path, 'data_dump.json')
 
         with open(file_path, 'w') as json_file:

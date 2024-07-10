@@ -1,14 +1,23 @@
-if __name__ == '__main__':
-    from pymilvus import (
-        connections,
-        utility,
-        FieldSchema,
-        CollectionSchema,
-        DataType,
-        Collection,
-    )
-    import random
+from pymilvus import (
+    connections,
+    utility,
+    FieldSchema,
+    CollectionSchema,
+    DataType,
+    Collection,
+    model,
+)
+import random
+import json
 
+if __name__ == '__main__':
+
+    sentence_transformer_ef = model.dense.SentenceTransformerEmbeddingFunction(
+        model_name='all-MiniLM-L6-v2',  # Specify the model name
+        device='cpu'
+    )
+
+    # Connect to Milvus
     connections.connect(
         alias="default",
         user='username',
@@ -17,44 +26,9 @@ if __name__ == '__main__':
         port='19530'
     )
 
-    print("connected to milvus local standalone")
+    # Print schema and list of collections
+    print("Collections in the system:", utility.list_collections())
 
-    fields = [
-        FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=False),
-        FieldSchema(name="random", dtype=DataType.DOUBLE),
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=8)
-    ]
-    schema = CollectionSchema(fields, "hello_milvus is the simplest demo to introduce the APIs")
-    hello_milvus = Collection("hello_milvus", schema)
-    # collection_ = Collection("Second Collection", schema)
-
-    entities = [
-        [i for i in range(3000)],  # field pk
-        [float(random.randrange(-20, -10)) for _ in range(3000)],  # field random
-        [[random.random() for _ in range(8)] for _ in range(3000)],  # field embeddings
-    ]
-
-    # entities = [] # Should call my embedding model
-
-    insert_result = hello_milvus.insert(entities)
-
-    index = {
-        "index_type": "IVF_FLAT",
-        "metric_type": "L2",
-        "params": {"nlist": 128},
-    }
-    hello_milvus.create_index("embeddings", index)
-
-    hello_milvus.load()
-    vectors_to_search = entities[-1][-2:]
-    search_params = {
-        "metric_type": "L2",
-        "params": {"nprobe": 10},
-    }
-    result = hello_milvus.search(vectors_to_search, "embeddings", search_params, limit=3, output_fields=["random"])
-
-    result = hello_milvus.search(vectors_to_search, "embeddings", search_params, limit=3, expr="random > -12",
-                                 output_fields=["random"])
-    print(result)
-
-    print(utility.list_collections())
+    collections = utility.list_collections()
+    for collection in collections:
+        utility.drop_collection(collection)
