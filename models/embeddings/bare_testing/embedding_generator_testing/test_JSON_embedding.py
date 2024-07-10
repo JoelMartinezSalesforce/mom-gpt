@@ -35,14 +35,14 @@ def generate_and_encode_data(generator, encoder, num_samples):
     json_file_path = "../dump/data_dump.json"
     os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
 
-    # Generate JSON data and save it to a file
+    
     generator.create_new_dump(num_samples)
 
-    # Encode data using threading
+    
     def encode_data(path):
         return encoder.encode_json_data(path)
 
-    # Single thread for encoding since it processes the entire file
+    
     embeddings = encode_data(json_file_path)
 
     return embeddings
@@ -74,14 +74,14 @@ if __name__ == '__main__':
             "percentage-NORTH_AMERICA": 39.50339959335143,
             "percentage-ASIA": 306
         }
-    )  # Initialize generator
-    encoder = JSONEncoder()  # Initialize encoder
+    )  
+    encoder = JSONEncoder()  
 
     print("Generating and encoding data...")
     embeddings = generate_and_encode_data(generator, encoder, num_samples)
 
     collection_name = "network_health_embeddings"
-    dim = len(embeddings[0]) if embeddings.size > 0 else 0  # Determine dimension from first embedding
+    dim = len(embeddings[0]) if embeddings.size > 0 else 0  
     collection = create_collection(collection_name, dim)
 
     print("Inserting embeddings into Milvus...")

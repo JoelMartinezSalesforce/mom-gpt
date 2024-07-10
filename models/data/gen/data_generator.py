@@ -12,7 +12,7 @@ class MockDataGenerator:
         self.data_path = '../dump/'
         self.data_exists = os.path.exists(self.data_path)
 
-        # Ensure the data path exists
+        
         if not os.path.exists(self.data_path):
             os.makedirs(self.data_path)
 
@@ -56,7 +56,7 @@ class MockDataGenerator:
                     random_data[key] = random.choice([self._generate_random_int(1, 100), None])
                 elif "util-updated" in key:
                     random_data[key] = self._generate_random_int(1609459200000,
-                                                                 1735689600000)  # Timestamp range for 2021-2024
+                                                                 1735689600000)  
                 elif "edge-latency" in key:
                     random_data[key] = random.choice([self._generate_random_number(0, 100), None])
                 elif "edge-side" in key:
