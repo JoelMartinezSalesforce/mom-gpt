@@ -11,11 +11,10 @@ from services.model.embeddings.embedding_model import EmbeddingModelWrapper
 
 class JSONEncoder:
     def __init__(self, model_name: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, num_workers=4):
-        
-        self.model_wrapper = EmbeddingModelWrapper.instance(model_name)
-        self.num_workers = num_workers  
 
-        
+        self.model_wrapper = EmbeddingModelWrapper.instance(model_name)
+        self.num_workers = num_workers
+
         nltk.download('punkt')
         nltk.download('stopwords')
         self.stop_words = set(stopwords.words('english'))
@@ -40,10 +39,9 @@ class JSONEncoder:
         for item in data:
             item_string = json.dumps(item)
             processed_text = self.preprocess_text(item_string)
-            if processed_text.strip():  
+            if processed_text.strip():
                 preprocessed_data.append(processed_text)
 
-        
         with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
             futures = {executor.submit(self.model_wrapper.encode, [text]): text for text in preprocessed_data}
             embeddings = []

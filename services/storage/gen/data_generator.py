@@ -45,7 +45,7 @@ class MockDataGenerator:
                         }
                     })
                 elif "status" in key:
-                    random_data[key] = random.choice(['active', 'inactive'])
+                    random_data[key] = random.choice(['admin', 'inactive'])
                 elif "speed" in key:
                     random_data[key] = self._generate_random_int(1000000000, 100000000000)
                 elif "percent" in key:

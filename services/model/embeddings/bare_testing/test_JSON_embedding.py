@@ -3,8 +3,9 @@ import os
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from tqdm import tqdm
 
-from services.storage.gen.data_generator import MockDataGenerator
+from manager.admin.crash_manager import CrashRecorderManager
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
+from services.storage.gen.data_generator import MockDataGenerator
 
 
 def create_collection(collection_name, dim, alias="default"):
@@ -32,7 +33,7 @@ def insert_embeddings(collection, embeddings):
 
 
 def generate_and_encode_data(generator, encoder, num_samples):
-    json_file_path = "../dump/data_dump.json"
+    json_file_path = "dump/data_dump.json"
     os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
 
     
@@ -75,17 +76,9 @@ if __name__ == '__main__':
             "percentage-ASIA": 306
         }
     )  
-    encoder = JSONEncoder()  
+    # encoder = JSONEncoder()
 
-    print("Generating and encoding data...")
-    embeddings = generate_and_encode_data(generator, encoder, num_samples)
+    # generator.create_new_dump(num_samples)
 
-    collection_name = "network_health_embeddings"
-    dim = len(embeddings[0]) if embeddings.size > 0 else 0  
-    collection = create_collection(collection_name, dim)
-
-    print("Inserting embeddings into Milvus...")
-    insert_embeddings(collection, embeddings)
-
-    print("All operations completed successfully.")
-    print("Collections in the system:", utility.list_collections())
+    manager = CrashRecorderManager()
+    manager.manage_json_embedding("/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json")

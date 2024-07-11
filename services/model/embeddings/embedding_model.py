@@ -10,6 +10,8 @@ class EmbeddingModelWrapper:
     _instance = None
 
     def __init__(self, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = 512):
+        self.model = model
+        self.encoding_dimensions = encoding_dimensions
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
 
     @classmethod
@@ -21,7 +23,10 @@ class EmbeddingModelWrapper:
 
     def _initialize(self, model, encoding_dimensions):
         self.encoding_dimensions = encoding_dimensions
+
+        #
         os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
+
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
         if self.device.type == 'cpu':
