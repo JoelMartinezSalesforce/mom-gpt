@@ -28,7 +28,3 @@ if __name__ == '__main__':
 
     # Print schema and list of collections
     print("Collections in the system:", utility.list_collections())
-
-    collections = utility.list_collections()
-    for collection in collections:
-        utility.drop_collection(collection)

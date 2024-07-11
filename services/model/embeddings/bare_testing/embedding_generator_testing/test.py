@@ -1,4 +1,4 @@
-from models.embeddings.embedding_model import EmbeddingModelWrapper
+from services.model.embeddings.embedding_model import EmbeddingModelWrapper
 import torch
 
 embedding_model = EmbeddingModelWrapper.instance()

@@ -3,7 +3,7 @@ from typing import List
 import torch
 from torch import Tensor
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from models.constants.embedding_const import EmbeddingConstants
+from services.model.constants.embedding_const import EmbeddingConstants
 
 
 class EmbeddingModelWrapper:

@@ -9,7 +9,7 @@ from tqdm import tqdm
 class MockDataGenerator:
     def __init__(self, data_struct):
         self.data_struct = data_struct
-        self.data_path = '../dump/'
+        self.data_path = '../../../models/data/dump/'
         self.data_exists = os.path.exists(self.data_path)
 
         

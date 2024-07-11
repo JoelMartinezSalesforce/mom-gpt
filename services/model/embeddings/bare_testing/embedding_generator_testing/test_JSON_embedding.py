@@ -3,8 +3,8 @@ import os
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from tqdm import tqdm
 
-from models.data.gen.data_generator import MockDataGenerator
-from models.embeddings.corpus.json_encoder import JSONEncoder
+from services.storage.gen.data_generator import MockDataGenerator
+from services.model.embeddings.corpus.json_encoder import JSONEncoder
 
 
 def create_collection(collection_name, dim, alias="default"):
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     )
 
     print("Collections in the system:", utility.list_collections())
-    num_samples = 1000
+    num_samples = 500
 
     generator = MockDataGenerator(
         {

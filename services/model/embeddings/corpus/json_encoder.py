@@ -5,8 +5,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from models.constants.embedding_const import EmbeddingConstants
-from models.embeddings.embedding_model import EmbeddingModelWrapper
+from services.model.constants.embedding_const import EmbeddingConstants
+from services.model.embeddings.embedding_model import EmbeddingModelWrapper
 
 
 class JSONEncoder:
