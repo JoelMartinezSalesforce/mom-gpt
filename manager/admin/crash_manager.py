@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
@@ -7,32 +8,46 @@ from manager.writter.crash_writer import CrashRecorderWriter
 from services.model.constants.embedding_const import EmbeddingConstants
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.model.embeddings.embedding_model import EmbeddingModelWrapper
-from pymilvus import (
-    connections,
-    utility,
-    FieldSchema,
-    CollectionSchema,
-    DataType,
-    Collection,
-)
+from pymilvus import connections, utility, FieldSchema, CollectionSchema, DataType, Collection
+import threading
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+PROGRESS_FILE = "progress.json"
 
 
 def _get_current_timestamp():
     return datetime.now().isoformat()
 
 
-def insert_embeddings(collection, embeddings):
+def insert_embeddings(collection, embeddings, start_index=0):
     batch_size = 1000
-    for i in tqdm(range(0, len(embeddings), batch_size), desc="Inserting embeddings", unit="batch"):
+    for i in tqdm(range(start_index, len(embeddings), batch_size), desc="Inserting embeddings", unit="batch"):
         batch = embeddings[i:i + batch_size]
         entities = [{"embeddings": emb.tolist()} for emb in batch]
         collection.insert(entities)
+        save_progress({"insertion_index": i + batch_size})
     collection.load()
+
+
+def save_progress(progress):
+    with open(PROGRESS_FILE, 'w') as f:
+        json.dump(progress, f)
+
+
+def load_progress():
+    try:
+        with open(PROGRESS_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
 
 class CrashRecorderManager:
     def __init__(self):
-        self.logger = None
+        self.logger = logger
         self.records = []
         self.writer = CrashRecorderWriter(self)
         self.reader = CrashRecorderReader(self)
@@ -48,7 +63,7 @@ class CrashRecorderManager:
                 host='localhost',
                 port='19530'
             )
-            print("Connected to Milvus")
+            self.logger.info("Connected to Milvus")
         except Exception as e:
             self.flag_crash(f"Milvus connection error: {str(e)}", "@CrashConnectionMilvus")
 
@@ -58,7 +73,7 @@ class CrashRecorderManager:
 
     def review_last_crash(self):
         last_record = self.reader.read_last_record()
-        print(f"Reviewing crash: {last_record.message} at {last_record.location} on {last_record.timestamp}")
+        self.logger.info(f"Reviewing crash: {last_record.message} at {last_record.location} on {last_record.timestamp}")
         return last_record.location
 
     def manage_json_embedding(self, json_data_path=None):
@@ -83,7 +98,7 @@ class CrashRecorderManager:
             return []
 
         preprocessed_data = []
-        for item in data:
+        for item in tqdm(data, desc="Preprocessing data", unit="item"):
             item_string = json.dumps(item)
             processed_text = self.encoder.preprocess_text(item_string)
             if processed_text.strip():
@@ -92,10 +107,19 @@ class CrashRecorderManager:
         return preprocessed_data
 
     def create_embeddings(self, preprocessed_data):
-        with ThreadPoolExecutor() as executor:
-            results = list(
-                tqdm(executor.map(self.embedding_model.encode, preprocessed_data), total=len(preprocessed_data),
-                     desc="Creating embeddings"))
+        results = []
+        lock = threading.Lock()
+
+        def process_data(item):
+            embedding = self.embedding_model.encode(item)
+            with lock:
+                results.append(embedding)
+                pbar.update(1)
+
+        with tqdm(total=len(preprocessed_data), desc="Creating embeddings", unit="embedding") as pbar:
+            with ThreadPoolExecutor() as executor:
+                list(executor.map(process_data, preprocessed_data))
+
         return results
 
     def store_embeddings_in_milvus(self, embeddings):
@@ -104,7 +128,7 @@ class CrashRecorderManager:
             return
 
         collection_name = "health_embedding"
-        vector_dim = 256
+        vector_dim = self.embedding_model.vector_size
 
         fields = [FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=vector_dim)]
         schema = CollectionSchema(fields, description="Network Data Embeddings")
@@ -117,6 +141,10 @@ class CrashRecorderManager:
                 collection = Collection(name=collection_name)
                 self.logger.info(f"Collection '{collection_name}' already exists.")
 
-            insert_embeddings(collection, embeddings)
+            progress = load_progress()
+            start_index = progress.get("insertion_index", 0)
+            insert_embeddings(collection, embeddings, start_index)
         except Exception as e:
             self.logger.error(f"Failed to create or access the Milvus collection: {e}")
+            self.flag_crash(f"Failed to create or access the Milvus collection: {e}", "@StoreEmbeddingsMilvus")
+            raise

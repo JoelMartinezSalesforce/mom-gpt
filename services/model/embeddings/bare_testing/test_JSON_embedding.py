@@ -59,7 +59,7 @@ if __name__ == '__main__':
     )
 
     print("Collections in the system:", utility.list_collections())
-    num_samples = 500
+    num_samples = 10
 
     generator = MockDataGenerator(
         {
@@ -76,9 +76,9 @@ if __name__ == '__main__':
             "percentage-ASIA": 306
         }
     )  
-    # encoder = JSONEncoder()
+    encoder = JSONEncoder()
 
-    # generator.create_new_dump(num_samples)
+    generator.create_new_dump(num_samples)
 
     manager = CrashRecorderManager()
     manager.manage_json_embedding("/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json")
