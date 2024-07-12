@@ -9,6 +9,12 @@ from services.model.constants.embedding_const import EmbeddingConstants
 from services.model.embeddings.embedding_model import EmbeddingModelWrapper
 
 
+def load_json_file(json_file_path):
+    with open(json_file_path, 'r') as file:
+        data = json.load(file)
+    return data
+
+
 class JSONEncoder:
     def __init__(self, model_name: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, num_workers=4):
 
@@ -19,11 +25,6 @@ class JSONEncoder:
         nltk.download('stopwords')
         self.stop_words = set(stopwords.words('english'))
 
-    def load_json_file(self, json_file_path):
-        with open(json_file_path, 'r') as file:
-            data = json.load(file)
-        return data
-
     def preprocess_text(self, text):
         text = text.lower()
         text = re.sub(r'\W', ' ', text)
@@ -33,7 +34,7 @@ class JSONEncoder:
         return ' '.join([word for word in tokens if word not in self.stop_words])
 
     def encode_json_data(self, json_file_path):
-        data = self.load_json_file(json_file_path)
+        data = load_json_file(json_file_path)
         preprocessed_data = []
 
         for item in data:

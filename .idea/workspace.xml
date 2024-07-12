@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8c08c5f0-e73b-43f3-a6d8-bac8c85af69b" name="Changes" comment="created the base for a system that just creates the embedding and once created inserts them to the milvus vector database which on theory should start the process form where it left off">
-      <change afterPath="$PROJECT_DIR$/logs/WRITE_LOGS/crash_logs.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/docker/volumes/milvus/etcd/member/snap/db" beforeDir="false" afterPath="$PROJECT_DIR$/env/docker/volumes/milvus/etcd/member/snap/db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/docker/volumes/milvus/etcd/member/wal/0000000000000000-0000000000000000.wal" beforeDir="false" afterPath="$PROJECT_DIR$/env/docker/volumes/milvus/etcd/member/wal/0000000000000000-0000000000000000.wal" afterDir="false" />
@@ -22,8 +21,7 @@
       <change beforePath="$PROJECT_DIR$/env/docker/volumes/milvus/rdb_data_meta_kv/OPTIONS-000031" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/docker/volumes/milvus/rdb_data_meta_kv/OPTIONS-000040" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/manager/admin/crash_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/manager/admin/crash_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/embeddings/bare_testing/dump/data_dump.json" beforeDir="false" afterPath="$PROJECT_DIR$/services/model/embeddings/bare_testing/dump/data_dump.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/model/embeddings/bare_testing/test_JSON_embedding.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/model/embeddings/bare_testing/test_JSON_embedding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/model/embeddings/corpus/json_encoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/model/embeddings/corpus/json_encoder.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -252,7 +250,7 @@
       <workItem from="1720479197096" duration="21967000" />
       <workItem from="1720628254687" duration="3467000" />
       <workItem from="1720632221461" duration="33112000" />
-      <workItem from="1720797800363" duration="4612000" />
+      <workItem from="1720797800363" duration="8911000" />
     </task>
     <task id="LOCAL-00001" summary="MockDataGenerator: This class handles way to generate data in the desired format just like the given struct in the outline, this class can create a json file which contains the information but this information can be retrieved in a dict format in order to test vectorizing the data with the SFR 2 Embedding model.">
       <option name="closed" value="true" />
@@ -398,7 +396,23 @@
       <option name="project" value="LOCAL" />
       <updated>1720740949209</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="created the base for a system that just creates the embedding and once created inserts them to the milvus vector database which on theory should start the process form where it left off">
+      <option name="closed" value="true" />
+      <created>1720803012646</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1720803012646</updated>
+    </task>
+    <task id="LOCAL-00020" summary="created the base for a system that just creates the embedding and once created inserts them to the milvus vector database which on theory should start the process form where it left off">
+      <option name="closed" value="true" />
+      <created>1720803523335</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1720803523335</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

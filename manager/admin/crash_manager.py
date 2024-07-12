@@ -1,15 +1,16 @@
 import json
 import logging
+import threading
 from datetime import datetime
+
+from pymilvus import connections, utility, FieldSchema, CollectionSchema, DataType, Collection
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor
+
 from manager.reader.crash_reader import CrashRecorderReader
 from manager.writter.crash_writer import CrashRecorderWriter
 from services.model.constants.embedding_const import EmbeddingConstants
-from services.model.embeddings.corpus.json_encoder import JSONEncoder
+from services.model.embeddings.corpus.json_encoder import JSONEncoder, load_json_file
 from services.model.embeddings.embedding_model import EmbeddingModelWrapper
-from pymilvus import connections, utility, FieldSchema, CollectionSchema, DataType, Collection
-import threading
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -82,17 +83,13 @@ class CrashRecorderManager:
             return
 
         self.connect_to_milvus()
-        data = self.load_and_preprocess_data(json_data_path)
-        if not data:
-            self.logger.info("No data to process after preprocessing.")
-            return
 
-        embeddings = self.create_embeddings(data)
+        embeddings = self.create_embeddings(json_path=json_data_path)
         self.store_embeddings_in_milvus(embeddings)
 
     def load_and_preprocess_data(self, json_data_path):
         try:
-            data = self.encoder.load_json_file(json_data_path)
+            data = load_json_file(json_data_path)
         except Exception as e:
             self.logger.error(f"Failed to load JSON file: {json_data_path}. Error: {e}")
             return []
@@ -106,19 +103,10 @@ class CrashRecorderManager:
 
         return preprocessed_data
 
-    def create_embeddings(self, preprocessed_data):
-        results = []
+    def create_embeddings(self, json_path):
         lock = threading.Lock()
 
-        def process_data(item):
-            embedding = self.embedding_model.encode(item)
-            with lock:
-                results.append(embedding)
-                pbar.update(1)
-
-        with tqdm(total=len(preprocessed_data), desc="Creating embeddings", unit="embedding") as pbar:
-            with ThreadPoolExecutor() as executor:
-                list(executor.map(process_data, preprocessed_data))
+        results = self.encoder.encode_json_data(json_path)
 
         return results
 
