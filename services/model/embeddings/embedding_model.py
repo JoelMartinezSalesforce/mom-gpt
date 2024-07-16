@@ -8,10 +8,9 @@ from services.model.constants.embedding_const import EmbeddingConstants
 
 class EmbeddingModelWrapper:
     _instance = None
+    encoding_dimensions = 256
 
     def __init__(self, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = 512):
-        self.model = model
-        self.encoding_dimensions = encoding_dimensions
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
 
     @classmethod
@@ -22,35 +21,32 @@ class EmbeddingModelWrapper:
         return cls._instance
 
     def _initialize(self, model, encoding_dimensions):
+        self._encoding_dimensions = encoding_dimensions
         self.encoding_dimensions = encoding_dimensions
-
-        #
         os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
-
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+
         if self.device.type == 'cpu':
             raise RuntimeError("No suitable GPU or MPS found. A GPU or MPS is needed for optimal performance.")
 
         print(f"Running on device: {self.device}")
 
         self.tokenizer = AutoTokenizer.from_pretrained(model)
-
-        # Define the quantization configuration dynamically
         self.quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_use_double_quant=True,
             bnb_4bit_compute_dtype=torch.bfloat16,
         )
-
-        # Load the model with quantization settings
         self.model = AutoModelForCausalLM.from_pretrained(
             model,
             config=self.quantization_config
-        )
-        self.model.eval()
-        self.model.to(self.device)
+        ).eval().to(self.device)
+
+    @property
+    def encoding_dimensions(self):
+        return self._encoding_dimensions
 
     def last_token_pool(self, last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
         sequence_lengths = attention_mask.sum(dim=1) - 1
@@ -67,8 +63,14 @@ class EmbeddingModelWrapper:
         return torch.nn.functional.normalize(embeddings, p=2, dim=1)
 
     def encode(self, texts: List[str]) -> Tensor:
-        embeddings = []
-        for text in texts:
-            embedding = self.process_input(text)
-            embeddings.append(embedding)
+        embeddings = [self.process_input(text) for text in texts]
         return torch.cat(embeddings, dim=0) if embeddings else torch.tensor([], device=self.device)
+
+    @encoding_dimensions.setter
+    def encoding_dimensions(self, value):
+        self._encoding_dimensions = value
+
+    @encoding_dimensions.getter
+    def get_encoding_dimensions(self):
+        return self._encoding_dimensions
+

@@ -9,5 +9,3 @@ if __name__ == '__main__':
     data.create_new_dump(2)
 
     element = data.recall_data_dump()[0]
-
-    embedding = embedding.process_input(str(element))

@@ -1,9 +1,6 @@
 import os
-
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from tqdm import tqdm
-
-from manager.admin.crash_manager import CrashRecorderManager
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
 
@@ -36,14 +33,11 @@ def generate_and_encode_data(generator, encoder, num_samples):
     json_file_path = "dump/data_dump.json"
     os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
 
-    
     generator.create_new_dump(num_samples)
 
-    
     def encode_data(path):
         return encoder.encode_json_data(path)
 
-    
     embeddings = encode_data(json_file_path)
 
     return embeddings
@@ -58,27 +52,33 @@ if __name__ == '__main__':
         port='19530'
     )
 
-    print("Collections in the system:", utility.list_collections())
-    num_samples = 10
-
     generator = MockDataGenerator(
         {
             "period": "month",
             "instance": "2024-05",
-            "site": "ntN06ZyAIg",
+            "site": "FislXFzr6Z",
             "metric": "internet-avail-cc",
             "end": "2021-06-01 00:00:00",
             "start": "2021-05-01 00:00:00",
             "updated": "2024-06-01 00:00:00",
-            "percentage-overall": 61.00315908896376,
-            "percentage-EUROPE": 38.970381437105715,
-            "percentage-NORTH_AMERICA": 39.50339959335143,
-            "percentage-ASIA": 306
+            "percentage-overall": 69.60791174172184,
+            "percentage-EUROPE": 19.24033096521821,
+            "percentage-NORTH_AMERICA": 74.04259099467755,
+            "percentage-ASIA": 689
         }
-    )  
-    encoder = JSONEncoder()
+    )
 
-    generator.create_new_dump(num_samples)
+    print("Collections in the system:", utility.list_collections())
+    num_samples = 2
 
-    manager = CrashRecorderManager()
-    manager.manage_json_embedding("/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json")
+    encoder = JSONEncoder(
+        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
+    )
+
+    result_of_preprocess = encoder.preprocess_for_encoding()
+
+    print(result_of_preprocess)
+
+    vector_res = encoder.model_wrapper.encode([result_of_preprocess])
+
+    print(vector_res.data)

@@ -55,6 +55,7 @@ class CrashRecorderManager:
         self.encoder = JSONEncoder(EmbeddingConstants.SALESFORCE_2_R)
         self.embedding_model = EmbeddingModelWrapper.instance(EmbeddingConstants.SALESFORCE_2_R, 256)
 
+
     def connect_to_milvus(self):
         try:
             connections.connect(
@@ -111,28 +112,49 @@ class CrashRecorderManager:
         return results
 
     def store_embeddings_in_milvus(self, embeddings):
+        global collection
         if not embeddings:
             self.logger.info("No embeddings to store in Milvus.")
             return
 
         collection_name = "health_embedding"
-        vector_dim = self.embedding_model.vector_size
+        vector_dim = EmbeddingConstants.FITTING_DIMENSIONS
 
-        fields = [FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=vector_dim)]
+        fields = [
+            FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+            FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=vector_dim)
+        ]
         schema = CollectionSchema(fields, description="Network Data Embeddings")
 
         try:
             if not utility.has_collection(collection_name):
                 collection = Collection(name=collection_name, schema=schema)
                 self.logger.info(f"Collection '{collection_name}' created.")
+                # Create an index right after creating the collection
+                self.create_index_if_not_exists(collection, "embeddings", {"nlist": 128})
             else:
                 collection = Collection(name=collection_name)
                 self.logger.info(f"Collection '{collection_name}' already exists.")
 
-            progress = load_progress()
-            start_index = progress.get("insertion_index", 0)
-            insert_embeddings(collection, embeddings, start_index)
+            collection.load()
+            ids = collection.insert([embeddings])
+            self.logger.info(f"Inserted {len(embeddings)} embeddings.")
+
         except Exception as e:
             self.logger.error(f"Failed to create or access the Milvus collection: {e}")
-            self.flag_crash(f"Failed to create or access the Milvus collection: {e}", "@StoreEmbeddingsMilvus")
             raise
+        finally:
+            collection.release()
+
+    def create_index_if_not_exists(self, collection, field_name, index_params):
+        if not collection.has_index():
+            index = {
+                "index_type": "IVF_FLAT",  # Example index type
+                "metric_type": "L2",       # Using L2 distance
+                "params": index_params     # Index parameters
+            }
+            collection.create_index(field_name, index)
+            self.logger.info(f"Index on '{field_name}' created with parameters {index_params}.")
+        else:
+            self.logger.info(f"Index on '{field_name}' already exists.")
+

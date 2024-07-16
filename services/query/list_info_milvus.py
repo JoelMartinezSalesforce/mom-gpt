@@ -7,15 +7,8 @@ from pymilvus import (
     Collection,
     model,
 )
-import random
-import json
 
 if __name__ == '__main__':
-
-    sentence_transformer_ef = model.dense.SentenceTransformerEmbeddingFunction(
-        model_name='all-MiniLM-L6-v2',  # Specify the model name
-        device='cpu'
-    )
 
     # Connect to Milvus
     connections.connect(
@@ -26,5 +19,8 @@ if __name__ == '__main__':
         port='19530'
     )
 
+    print("Collections in the system:", utility.list_collections())
+
     # Print schema and list of collections
+    # utility.drop_collection("health_embedding")
     print("Collections in the system:", utility.list_collections())
