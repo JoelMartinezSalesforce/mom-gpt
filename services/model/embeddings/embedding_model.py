@@ -53,7 +53,16 @@ class EmbeddingModelWrapper:
         batch_size = last_hidden_states.shape[0]
         return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
-    def process_input(self, input_text: str) -> Tensor:
+    def process_input(self, input_text: str) -> torch.Tensor:
+        """
+        Tokenize input text and generate embeddings using a pre-trained model.
+
+        Args:
+            input_text (str): Text to be encoded.
+
+        Returns:
+            torch.Tensor: Normalized embedding tensor.
+        """
         batch_dict = self.tokenizer(input_text, max_length=self.encoding_dimensions, padding=True, truncation=True,
                                     return_tensors="pt")
         batch_dict = {k: v.to(self.device) for k, v in batch_dict.items()}
@@ -62,9 +71,18 @@ class EmbeddingModelWrapper:
         embeddings = self.last_token_pool(last_hidden_states, batch_dict['attention_mask'])
         return torch.nn.functional.normalize(embeddings, p=2, dim=1)
 
-    def encode(self, texts: List[str]) -> Tensor:
+    def encode(self, texts: List[str]) -> List[torch.Tensor]:
+        """
+        Encode a list of text strings into embeddings.
+
+        Args:
+            texts (List[str]): A list of strings to be encoded.
+
+        Returns:
+            List[torch.Tensor]: A list of tensor embeddings.
+        """
         embeddings = [self.process_input(text) for text in texts]
-        return torch.cat(embeddings, dim=0) if embeddings else torch.tensor([], device=self.device)
+        return embeddings  # Return the list of embeddings directly
 
     @encoding_dimensions.setter
     def encoding_dimensions(self, value):
