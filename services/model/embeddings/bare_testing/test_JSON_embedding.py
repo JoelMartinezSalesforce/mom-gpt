@@ -5,6 +5,7 @@ from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Colle
 from tqdm import tqdm
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
+from services.storage.storage_coord.storage_coord import MilvusStorageCoord
 
 
 def create_collection(collection_name, dim, alias="default"):
@@ -46,53 +47,75 @@ def generate_and_encode_data(generator, encoder, num_samples):
 
 
 if __name__ == '__main__':
+    # Start measuring the time for the entire script
+    start_time = time.perf_counter()
 
-    if __name__ == '__main__':
-        # Start measuring the time for the entire script
-        start_time = time.perf_counter()
+    # Connect to Milvus
+    connections.connect(
+        alias="default",
+        user='username',
+        password='password',
+        host='localhost',
+        port='19530'
+    )
 
-        # Connect to Milvus
-        connections.connect(
-            alias="default",
-            user='username',
-            password='password',
-            host='localhost',
-            port='19530'
-        )
+    # Print existing collections
+    print("Collections in the system:", utility.list_collections())
 
-        # Print existing collections
-        print("Collections in the system:", utility.list_collections())
+    # Set up the generator
+    generator = MockDataGenerator({
+        "period": "month",
+        "instance": "2024-05",
+        "site": "FislXFzr6Z",
+        "metric": "internet-avail-cc",
+        "end": "2021-06-01 00:00:00",
+        "start": "2021-05-01 00:00:00",
+        "updated": "2024-06-01 00:00:00",
+        "percentage-overall": 69.60791174172184,
+        "percentage-EUROPE": 19.24033096521821,
+        "percentage-NORTH_AMERICA": 74.04259099467755,
+        "percentage-ASIA": 689
+    })
 
-        # Setup the generator
-        generator = MockDataGenerator({
-            "period": "month",
-            "instance": "2024-05",
-            "site": "FislXFzr6Z",
-            "metric": "internet-avail-cc",
-            "end": "2021-06-01 00:00:00",
-            "start": "2021-05-01 00:00:00",
-            "updated": "2024-06-01 00:00:00",
-            "percentage-overall": 69.60791174172184,
-            "percentage-EUROPE": 19.24033096521821,
-            "percentage-NORTH_AMERICA": 74.04259099467755,
-            "percentage-ASIA": 689
-        })
+    num_samples = 2
+    # Initialize encoder with the JSON file path
+    encoder = JSONEncoder(
+        json_file_path="data path.json"
+    )
 
-        num_samples = 2
-        # Initialize encoder with the JSON file path
-        encoder = JSONEncoder(
-            json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
-        )
+    # Preprocess the data
+    result_of_preprocess = encoder.preprocess_for_encoding()
+    print("Preprocessed Data:", result_of_preprocess)
+    print(f"Number of preprocessed data: {len(result_of_preprocess)}")
 
-        # Preprocess the data
-        result_of_preprocess = encoder.preprocess_for_encoding()
-        print("Preprocessed Data:", result_of_preprocess)
+    # Encode the preprocessed data
+    vector_res = encoder.model_wrapper.encode([result_of_preprocess])
+    print("Vector Results:", vector_res.data)
+    print(f"Number of Embeddings Created: {len(vector_res)}")
 
-        # Encode the preprocessed data
-        vector_res = encoder.model_wrapper.encode([result_of_preprocess])
-        print("Vector Results:", vector_res.data)
+    # Print total elapsed time
+    total_elapsed_time = time.perf_counter() - start_time
+    print(f"Time per Embedding Created: {len(vector_res) / total_elapsed_time}")
+    print(f"Total time taken for script execution: {total_elapsed_time:.4f} seconds")
 
-        # Print total elapsed time
-        total_elapsed_time = time.perf_counter() - start_time
-        print(f"Total time taken for script execution: {total_elapsed_time:.4f} seconds")
+    # Populate milvus vector database figure out how to do this
+    fields = [
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR),
+    ]
+
+    schema = CollectionSchema(fields, description="Network Data Embeddings")
+    health_embeddings = Collection(name="health", schema=schema)
+
+    print("Inserting Embeddings to Milvus...")
+
+    insert_result = health_embeddings.insert(vector_res.data)
+
+    index = {
+        "index_type": "IVF_FLAT",
+        "metric_type": "L2",
+        "params": {"nlist": 128},
+    }
+    health_embeddings.create_index("embeddings", index)
+    health_embeddings.load()
+
 
