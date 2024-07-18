@@ -3,9 +3,9 @@ import time
 
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from tqdm import tqdm
+
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
-from services.storage.storage_coord.storage_coord import MilvusStorageCoord
 
 
 def create_collection(collection_name, dim, alias="default"):
@@ -47,10 +47,8 @@ def generate_and_encode_data(generator, encoder, num_samples):
 
 
 if __name__ == '__main__':
-    # Start measuring the time for the entire script
     start_time = time.perf_counter()
 
-    # Connect to Milvus
     connections.connect(
         alias="default",
         user='username',
@@ -59,10 +57,8 @@ if __name__ == '__main__':
         port='19530'
     )
 
-    # Print existing collections
     print("Collections in the system:", utility.list_collections())
 
-    # Set up the generator
     generator = MockDataGenerator({
         "period": "month",
         "instance": "2024-05",
@@ -77,39 +73,46 @@ if __name__ == '__main__':
         "percentage-ASIA": 689
     })
 
-    num_samples = 2
-    # Initialize encoder with the JSON file path
     encoder = JSONEncoder(
-        json_file_path="data path.json"
+        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
     )
 
-    # Preprocess the data
-    result_of_preprocess = encoder.preprocess_for_encoding()
-    print("Preprocessed Data:", result_of_preprocess)
-    print(f"Number of preprocessed data: {len(result_of_preprocess)}")
+    preprocessed_data = encoder.preprocess_for_encoding()
+    number_of_items = len(preprocessed_data)
+    print("Preprocessed Data:", preprocessed_data)
+    print(f"Number of preprocessed data: {number_of_items}")
 
-    # Encode the preprocessed data
-    vector_res = encoder.model_wrapper.encode([result_of_preprocess])
-    print("Vector Results:", vector_res.data)
-    print(f"Number of Embeddings Created: {len(vector_res)}")
+    vector_results = [encoder.model_wrapper.encode(text) for text in preprocessed_data]
+    flattened_vector_results = vector_results  # Assuming encode returns a list of tensors
+    print("Vector Results:", vector_results)
+    print(f"Number of Embeddings Created: {len(vector_results)}")
 
-    # Print total elapsed time
-    total_elapsed_time = time.perf_counter() - start_time
-    print(f"Time per Embedding Created: {len(vector_res) / total_elapsed_time}")
-    print(f"Total time taken for script execution: {total_elapsed_time:.4f} seconds")
+    # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
+    embedding_dim = vector_results[0].shape[1] if vector_results else 0
 
-    # Populate milvus vector database figure out how to do this
+    # Define fields for the Milvus collection
     fields = [
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR),
+        FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=True),
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=embedding_dim)
     ]
 
     schema = CollectionSchema(fields, description="Network Data Embeddings")
-    health_embeddings = Collection(name="health", schema=schema)
+    collection_name = "network_health_embeddings"
+    if utility.has_collection(collection_name):
+        health_embeddings = Collection(name=collection_name)
+    else:
+        health_embeddings = Collection(name=collection_name, schema=schema)
+        print(f"Collection '{collection_name}' created.")
 
+    # Insert embeddings to Milvus
     print("Inserting Embeddings to Milvus...")
+    entities = [
+        [i for i in range(number_of_items)],
+        vector_results
+    ]
+    insert_result = health_embeddings.insert(entities)
 
-    insert_result = health_embeddings.insert(vector_res.data)
-
+    # Create an index for faster search
     index = {
         "index_type": "IVF_FLAT",
         "metric_type": "L2",
@@ -118,4 +121,17 @@ if __name__ == '__main__':
     health_embeddings.create_index("embeddings", index)
     health_embeddings.load()
 
+    # Calculate execution time
+    total_elapsed_time = time.perf_counter() - start_time
+    print(f"Time per Embedding Created: {total_elapsed_time / max(len(vector_results), 1):.4f} seconds")
+    print(f"Total time taken for script execution: {total_elapsed_time:.4f} seconds")
 
+    search_params = {
+        "metric_type": "L2",
+        "params": {"nprobe": 10},
+    }
+
+    print("Performing a single vector search...")
+    res = health_embeddings.search(entities[-1], "embeddings", search_params, limit=5, output_fields=["pk"])
+
+    print(f"Results of the vector search: \n{res}")

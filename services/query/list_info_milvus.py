@@ -22,5 +22,5 @@ if __name__ == '__main__':
     print("Collections in the system:", utility.list_collections())
 
     # Print schema and list of collections
-    # utility.drop_collection("health_embedding")
+    utility.drop_collection("my_custom_collection")
     print("Collections in the system:", utility.list_collections())
