@@ -1,13 +1,10 @@
 import time
-
+import csv
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
-
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
 
-
 if __name__ == '__main__':
-
     connections.connect(
         alias="default",
         user='username',
@@ -33,7 +30,7 @@ if __name__ == '__main__':
     })
 
     encoder = JSONEncoder(
-        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
+        json_file_path="DATA PATH"
     )
 
     preprocessed_data = encoder.preprocess_for_encoding()
@@ -47,12 +44,23 @@ if __name__ == '__main__':
     print("Vector Results:", vector_results)
     print(f"Number of Embeddings Created: {len(vector_results)}")
 
+    # Save embeddings to a CSV file immediately after creation
+    csv_file_path = 'embeddings.csv'
+    with open(csv_file_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID", "Embedding"])
+        for idx, embedding in enumerate(vector_results):
+            writer.writerow([idx, embedding.tolist()])  # Convert tensor to list if needed
+
+    print(f"Embeddings saved to {csv_file_path}")
+
     # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
     embedding_dim = vector_results[0].shape[1] if vector_results else 0
 
     # Define fields for the Milvus collection
     fields = [
         FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=True),
+        FieldSchema(name="data", dtype=DataType.JSON, max_length=4000),
         FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=embedding_dim)
     ]
 
@@ -68,6 +76,7 @@ if __name__ == '__main__':
     print("Inserting Embeddings to Milvus...")
     entities = [
         [i for i in range(number_of_items)],
+        [encoder.data],
         vector_results
     ]
 

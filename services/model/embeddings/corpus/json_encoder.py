@@ -13,6 +13,7 @@ class JSONEncoder:
         self.json_file_path = json_file_path
         self.model_wrapper = EmbeddingModelWrapper.instance(model_name, EmbeddingConstants.FITTING_DIMENSIONS)
         self.num_workers = num_workers
+        self.json_data = self.model_wrapper.load_json(self.json_file_path)
 
         nltk.download('punkt')
         nltk.download('stopwords')
