@@ -3,6 +3,7 @@ import csv
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
+from tqdm import tqdm
 
 if __name__ == '__main__':
     connections.connect(
@@ -29,8 +30,10 @@ if __name__ == '__main__':
         "percentage-ASIA": 689
     })
 
+    generator.create_new_dump(20)
+
     encoder = JSONEncoder(
-        json_file_path="DATA PATH"
+        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
     )
 
     preprocessed_data = encoder.preprocess_for_encoding()
@@ -39,7 +42,9 @@ if __name__ == '__main__':
     print(f"Number of preprocessed data: {number_of_items}")
 
     start_time = time.perf_counter()
-    vector_results = [encoder.model_wrapper.encode(text) for text in preprocessed_data]
+    vector_results = []
+    for text in tqdm(preprocessed_data, desc="Encoding"):
+        vector_results.append(encoder.model_wrapper.encode(text))
     flattened_vector_results = vector_results  # Assuming encode returns a list of tensors
     print("Vector Results:", vector_results)
     print(f"Number of Embeddings Created: {len(vector_results)}")
