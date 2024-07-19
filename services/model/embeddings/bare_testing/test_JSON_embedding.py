@@ -1,53 +1,12 @@
-import os
 import time
 
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
-from tqdm import tqdm
 
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
 
 
-def create_collection(collection_name, dim, alias="default"):
-    connections.connect(alias=alias)
-    fields = [
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=dim)
-    ]
-    schema = CollectionSchema(fields, description="Network Data Embeddings")
-    if not utility.has_collection(collection_name):
-        collection = Collection(name=collection_name, schema=schema)
-        print(f"Collection '{collection_name}' created.")
-    else:
-        collection = Collection(name=collection_name)
-        print(f"Collection '{collection_name}' already exists.")
-    return collection
-
-
-def insert_embeddings(collection, embeddings):
-    batch_size = 1000
-    for i in tqdm(range(0, len(embeddings), batch_size), desc="Inserting embeddings"):
-        batch = embeddings[i:i + batch_size]
-        entities = [{"embeddings": emb.tolist()} for emb in batch]
-        collection.insert(entities)
-    collection.load()
-
-
-def generate_and_encode_data(generator, encoder, num_samples):
-    json_file_path = "dump/data_dump.json"
-    os.makedirs(os.path.dirname(json_file_path), exist_ok=True)
-
-    generator.create_new_dump(num_samples)
-
-    def encode_data(path):
-        return encoder.encode_json_data(path)
-
-    embeddings = encode_data(json_file_path)
-
-    return embeddings
-
-
 if __name__ == '__main__':
-    start_time = time.perf_counter()
 
     connections.connect(
         alias="default",
@@ -82,6 +41,7 @@ if __name__ == '__main__':
     print("Preprocessed Data:", preprocessed_data)
     print(f"Number of preprocessed data: {number_of_items}")
 
+    start_time = time.perf_counter()
     vector_results = [encoder.model_wrapper.encode(text) for text in preprocessed_data]
     flattened_vector_results = vector_results  # Assuming encode returns a list of tensors
     print("Vector Results:", vector_results)
@@ -110,6 +70,7 @@ if __name__ == '__main__':
         [i for i in range(number_of_items)],
         vector_results
     ]
+
     insert_result = health_embeddings.insert(entities)
 
     # Create an index for faster search
@@ -132,6 +93,6 @@ if __name__ == '__main__':
     }
 
     print("Performing a single vector search...")
-    res = health_embeddings.search(entities[-1], "embeddings", search_params, limit=5, output_fields=["pk"])
+    res = health_embeddings.search([entities[-1][2]], "embeddings", search_params, limit=5, output_fields=["pk"])
 
     print(f"Results of the vector search: \n{res}")
