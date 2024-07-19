@@ -8,9 +8,9 @@ from services.model.constants.embedding_const import EmbeddingConstants
 
 class EmbeddingModelWrapper:
     _instance = None
-    encoding_dimensions = 256
+    _encoding_dimensions = 256
 
-    def __init__(self, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = 512):
+    def __init__(self):
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
 
     @classmethod
@@ -91,4 +91,3 @@ class EmbeddingModelWrapper:
     @encoding_dimensions.getter
     def get_encoding_dimensions(self):
         return self._encoding_dimensions
-
