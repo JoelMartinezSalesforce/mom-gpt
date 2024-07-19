@@ -42,25 +42,25 @@ if __name__ == '__main__':
     print(f"Number of preprocessed data: {number_of_items}")
 
     start_time = time.perf_counter()
-    vector_results = []
-    for text in tqdm(preprocessed_data, desc="Encoding"):
-        vector_results.append(encoder.model_wrapper.encode(text))
-    flattened_vector_results = vector_results  # Assuming encode returns a list of tensors
-    print("Vector Results:", vector_results)
-    print(f"Number of Embeddings Created: {len(vector_results)}")
+
+    vector_res = encoder.model_wrapper.encode(preprocessed_data)
+
+    print(vector_res.data)
+    print("Vector Results:", vector_res)
+    print(f"Number of Embeddings Created: {len(vector_res)}")
 
     # Save embeddings to a CSV file immediately after creation
     csv_file_path = 'embeddings.csv'
     with open(csv_file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["ID", "Embedding"])
-        for idx, embedding in enumerate(vector_results):
+        for idx, embedding in enumerate(vector_res):
             writer.writerow([idx, embedding.tolist()])  # Convert tensor to list if needed
 
     print(f"Embeddings saved to {csv_file_path}")
 
     # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
-    embedding_dim = vector_results[0].shape[1] if vector_results else 0
+    embedding_dim = vector_res[0].shape[1] if vector_res else 0
 
     # Define fields for the Milvus collection
     fields = [
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     entities = [
         [i for i in range(number_of_items)],
         [encoder.data],
-        vector_results
+        vector_res
     ]
 
     insert_result = health_embeddings.insert(entities)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # Calculate execution time
     total_elapsed_time = time.perf_counter() - start_time
-    print(f"Time per Embedding Created: {total_elapsed_time / max(len(vector_results), 1):.4f} seconds")
+    print(f"Time per Embedding Created: {total_elapsed_time / max(len(vector_res), 1):.4f} seconds")
     print(f"Total time taken for script execution: {total_elapsed_time:.4f} seconds")
 
     search_params = {

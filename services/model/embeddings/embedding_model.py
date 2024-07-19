@@ -2,6 +2,7 @@ import os
 from typing import List
 import torch
 from torch import Tensor
+from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from services.model.constants.embedding_const import EmbeddingConstants
 
@@ -81,7 +82,7 @@ class EmbeddingModelWrapper:
         Returns:
             List[torch.Tensor]: A list of tensor embeddings.
         """
-        embeddings = [self.process_input(text) for text in texts]
+        embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
         return embeddings  # Return the list of embeddings directly
 
     @encoding_dimensions.setter
