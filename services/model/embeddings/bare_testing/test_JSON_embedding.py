@@ -14,6 +14,8 @@ if __name__ == '__main__':
     )
 
     print("Collections in the system:", utility.list_collections())
+    for collection in utility.list_collections():
+        utility.drop_collection(collection)
 
     generator = MockDataGenerator({
         "period": "month",
@@ -29,7 +31,7 @@ if __name__ == '__main__':
         "percentage-ASIA": 689
     })
 
-    generator.create_new_dump(6)
+    generator.create_new_dump(4)
 
     encoder = JSONEncoder(
         json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
@@ -71,7 +73,7 @@ if __name__ == '__main__':
     # Define fields for the Milvus collection
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
-        FieldSchema(name="data", dtype=DataType.JSON),
+        FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=3800),
         FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=embedding_dim)
     ]
 
@@ -84,16 +86,20 @@ if __name__ == '__main__':
         health_embeddings = Collection(name=COLLECTION_NAME, schema=schema)
         print(f"Collection '{COLLECTION_NAME}' created.")
     # Insert embeddings to Milvus
-    print("Inserting Embeddings to Milvus...")
+
+    print("Created entities to insert")
     entities = [
         preprocessed_data,
-        [elem.tolist() for elem in vector_res]
+        vector_res
     ]
-
+    print("Inserting Embeddings to Milvus...")
     # inserting fields into milvus
     insert_result = health_embeddings.insert(entities)
 
+    print("Inserted Embeddings:", insert_result)
+
     # Create an index for faster search
+    print("Indexing...")
     index = {
         "index_type": "IVF_FLAT",
         "metric_type": "L2",
@@ -101,6 +107,7 @@ if __name__ == '__main__':
     }
     health_embeddings.create_index("embeddings", index)
     health_embeddings.load()
+    print("Index created")
 
     # Calculate execution time
     total_elapsed_time = time.perf_counter() - start_time
