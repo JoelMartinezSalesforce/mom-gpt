@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
     COLLECTION_NAME = "health_data"
     # print(vector_res[0].tolist())
-    embedding_dim = encoder.model_wrapper.encoding_dimensions()
+    embedding_dim = encoder.model_wrapper.encoding_dimensions
     print(embedding_dim)
 
     # Check that the collection does not yet exist
@@ -86,7 +86,6 @@ if __name__ == '__main__':
     # Insert embeddings to Milvus
     print("Inserting Embeddings to Milvus...")
     entities = [
-        [i for i in range(number_of_items)],
         preprocessed_data,
         [elem.tolist() for elem in vector_res]
     ]
