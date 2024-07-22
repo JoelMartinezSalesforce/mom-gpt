@@ -3,7 +3,6 @@ import csv
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.storage.gen.data_generator import MockDataGenerator
-from tqdm import tqdm
 
 if __name__ == '__main__':
     connections.connect(
@@ -30,7 +29,7 @@ if __name__ == '__main__':
         "percentage-ASIA": 689
     })
 
-    generator.create_new_dump(20)
+    generator.create_new_dump(6)
 
     encoder = JSONEncoder(
         json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json"
@@ -43,48 +42,56 @@ if __name__ == '__main__':
 
     start_time = time.perf_counter()
 
+    # Encoding the list of texts directly
     vector_res = encoder.model_wrapper.encode(preprocessed_data)
 
-    print(vector_res.data)
-    print("Vector Results:", vector_res)
+    print("Vector Results:", [elem.tolist for elem in vector_res])
     print(f"Number of Embeddings Created: {len(vector_res)}")
 
     # Save embeddings to a CSV file immediately after creation
     csv_file_path = 'embeddings.csv'
     with open(csv_file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["ID", "Embedding"])
-        for idx, embedding in enumerate(vector_res):
-            writer.writerow([idx, embedding.tolist()])  # Convert tensor to list if needed
+        writer.writerow(["ID", "Text", "Embedding"])
+        for idx, (text, embedding) in enumerate(zip(preprocessed_data, vector_res)):
+            writer.writerow([idx, text, embedding.tolist()])  # Convert tensor to list if needed
 
     print(f"Embeddings saved to {csv_file_path}")
 
     # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
-    embedding_dim = vector_res[0].shape[1] if vector_res else 0
+    COLLECTION_NAME = "health_data"
+    # print(vector_res[0].tolist())
+    embedding_dim = len(vector_res[0].tolist()) if vector_res else 0
+    print(embedding_dim)
+
+    # Check that the collection does not yet exist
+    if utility.has_collection(COLLECTION_NAME):
+        utility.drop_collection(COLLECTION_NAME)
 
     # Define fields for the Milvus collection
     fields = [
-        FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=True),
-        FieldSchema(name="data", dtype=DataType.JSON, max_length=4000),
+        FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+        FieldSchema(name="data", dtype=DataType.JSON),
         FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=embedding_dim)
     ]
 
-    schema = CollectionSchema(fields, description="Network Data Embeddings")
-    collection_name = "network_health_embeddings"
-    if utility.has_collection(collection_name):
-        health_embeddings = Collection(name=collection_name)
-    else:
-        health_embeddings = Collection(name=collection_name, schema=schema)
-        print(f"Collection '{collection_name}' created.")
+    schema = CollectionSchema(fields=fields)
+    collection = Collection(name=COLLECTION_NAME, schema=schema)
 
+    if utility.has_collection(COLLECTION_NAME):
+        health_embeddings = Collection(name=COLLECTION_NAME)
+    else:
+        health_embeddings = Collection(name=COLLECTION_NAME, schema=schema)
+        print(f"Collection '{COLLECTION_NAME}' created.")
     # Insert embeddings to Milvus
     print("Inserting Embeddings to Milvus...")
     entities = [
         [i for i in range(number_of_items)],
-        [encoder.data],
-        vector_res
+        preprocessed_data,
+        [elem.tolist() for elem in vector_res]
     ]
 
+    # inserting fields into milvus
     insert_result = health_embeddings.insert(entities)
 
     # Create an index for faster search
@@ -107,6 +114,6 @@ if __name__ == '__main__':
     }
 
     print("Performing a single vector search...")
-    res = health_embeddings.search([entities[-1][2]], "embeddings", search_params, limit=5, output_fields=["pk"])
+    res = health_embeddings.search(vector_res[:1], "embeddings", search_params, limit=5, output_fields=["pk", "data"])
 
     print(f"Results of the vector search: \n{res}")
