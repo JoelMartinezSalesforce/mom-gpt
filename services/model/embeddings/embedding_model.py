@@ -9,7 +9,7 @@ from services.model.constants.embedding_const import EmbeddingConstants
 
 class EmbeddingModelWrapper:
     _instance = None
-    _encoding_dimensions = 256
+    _encoding_dimensions = 256  # Default dimension
 
     def __init__(self):
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
@@ -23,7 +23,6 @@ class EmbeddingModelWrapper:
 
     def _initialize(self, model, encoding_dimensions):
         self._encoding_dimensions = encoding_dimensions
-        self.encoding_dimensions = encoding_dimensions
         os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
         self.device = torch.device(
             'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -48,6 +47,12 @@ class EmbeddingModelWrapper:
     @property
     def encoding_dimensions(self):
         return self._encoding_dimensions
+
+    @encoding_dimensions.setter
+    def encoding_dimensions(self, value):
+        if value < 2 or value > 32768:
+            raise ValueError("Encoding dimension must be between 2 and 32768.")
+        self._encoding_dimensions = value
 
     def last_token_pool(self, last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
         sequence_lengths = attention_mask.sum(dim=1) - 1
@@ -84,11 +89,3 @@ class EmbeddingModelWrapper:
         """
         embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
         return embeddings  # Return the list of embeddings directly
-
-    @encoding_dimensions.setter
-    def encoding_dimensions(self, value):
-        self._encoding_dimensions = value
-
-    @encoding_dimensions.getter
-    def get_encoding_dimensions(self):
-        return self._encoding_dimensions

@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # Set the embedding dimension based on the first result assuming all embeddings have the same dimension
     COLLECTION_NAME = "health_data"
     # print(vector_res[0].tolist())
-    embedding_dim = len(vector_res[0].tolist()) if vector_res else 0
+    embedding_dim = encoder.model_wrapper.encoding_dimensions()
     print(embedding_dim)
 
     # Check that the collection does not yet exist
