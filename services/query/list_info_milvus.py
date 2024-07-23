@@ -1,55 +1,42 @@
-from pymilvus import MilvusClient, DataType
+from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 
 if __name__ == '__main__':
 
-    # 1. Set up a Milvus client
-    client = MilvusClient(
-        uri="http://localhost:19530"
-    )
+    # Initialize connection to Milvus
+    connections.connect("default", host='localhost', port='19530', user='username', password='password')
 
-    # 2. Create a collection in quick setup mode
-    client.create_collection(
-        collection_name="quick_setup",
-        dimension=5
-    )
+    # Define the schema for the collection
+    fields = [
+        FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+        FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=1024),
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=128)  # Assuming dimension is 128
+    ]
+    schema = CollectionSchema(fields=fields)
 
-    res = client.get_load_state(
-        collection_name="quick_setup"
-    )
+    # Create or get the collection
+    collection_name = "simple_test_collection"
+    if utility.has_collection(collection_name):
+        utility.drop_collection(collection_name)
+    collection = Collection(name=collection_name, schema=schema)
 
-    print(res)
+    # Insert sample data
+    entities = [
+        ["test data"],  # Data for VARCHAR field
+        [[0.1] * 128]  # Data for FLOAT_VECTOR field
+    ]
+    insert_result = collection.insert(entities)
+    print("Insertion result:", insert_result)
 
-    # Output
-    #
-    # {
-    #     "state": "<LoadState: Loaded>"
-    # }
+    # Create an index on the 'embeddings' field
+    index_params = {
+        "index_type": "IVF_FLAT",
+        "metric_type": "L2",
+        "params": {"nlist": 100}
+    }
+    collection.create_index("embeddings", index_params)
+    print("Index created on 'embeddings' field.")
 
-    schema = MilvusClient.create_schema(
-        auto_id=False,
-        enable_dynamic_field=True,
-    )
-
-    schema.add_field(field_name="my_id", datatype=DataType.INT64, is_primary=True)
-    schema.add_field(field_name="my_vector", datatype=DataType.FLOAT_VECTOR, dim=5)
-
-    index_params = client.prepare_index_params()
-
-    index_params.add_index(
-        field_name="my_id",
-        index_type="STL_SORT"
-    )
-
-    index_params.add_index(
-        field_name="my_vector",
-        index_type="IVF_FLAT",
-        metric_type="IP",
-        params={"nlist": 128}
-    )
-
-    res = client.describe_collection(
-        collection_name="health_data"
-    )
-
-    print(res)
+    # Load the collection
+    collection.load()
+    print("Collection is loaded and ready for search.")
 
