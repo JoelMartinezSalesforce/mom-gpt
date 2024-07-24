@@ -90,4 +90,4 @@ class EmbeddingModelWrapper:
         """
         embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
         print(embeddings[0].shape)
-        return embeddings if not flat else [embedding for sublist in embeddings for embedding in sublist]  # Return the list of embeddings directly
+        return [embedding for sublist in embeddings for embedding in sublist] if flat else embeddings

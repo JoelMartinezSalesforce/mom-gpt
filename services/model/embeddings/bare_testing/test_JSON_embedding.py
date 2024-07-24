@@ -60,7 +60,7 @@ if __name__ == '__main__':
     except Exception as e:
         ic("Error during insertion:", str(e))
 
-    # Create index and load collection
+    # Create index and load collections
     index_params = {
         "index_type": "IVF_FLAT",
         "metric_type": "L2",
