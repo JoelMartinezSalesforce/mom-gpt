@@ -89,4 +89,5 @@ class EmbeddingModelWrapper:
             List[torch.Tensor]: A list of tensor embeddings.
         """
         embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
+        print(embeddings[0].shape)
         return embeddings if not flat else [embedding for sublist in embeddings for embedding in sublist]  # Return the list of embeddings directly
