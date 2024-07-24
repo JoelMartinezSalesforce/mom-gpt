@@ -77,15 +77,16 @@ class EmbeddingModelWrapper:
         embeddings = self.last_token_pool(last_hidden_states, batch_dict['attention_mask'])
         return torch.nn.functional.normalize(embeddings, p=2, dim=1)
 
-    def encode(self, texts: List[str]) -> List[torch.Tensor]:
+    def encode(self, texts: List[str], flat: bool = False) -> List[torch.Tensor]:
         """
         Encode a list of text strings into embeddings.
 
         Args:
             texts (List[str]): A list of strings to be encoded.
+            flat (bool, optional): Whether to flatten the embeddings.
 
         Returns:
             List[torch.Tensor]: A list of tensor embeddings.
         """
         embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
-        return embeddings  # Return the list of embeddings directly
+        return embeddings if not flat else [embedding for sublist in embeddings for embedding in sublist]  # Return the list of embeddings directly

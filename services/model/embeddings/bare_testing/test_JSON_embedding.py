@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # Preprocess data and encode
     preprocessed_data = encoder.preprocess_for_encoding()
-    vector_res = encoder.model_wrapper.encode(preprocessed_data)
+    vector_res = encoder.model_wrapper.encode(texts=preprocessed_data, flat=True)
     print("Vector Results first sample:", str(vector_res[0])[:150] + "...")
 
     # Save embeddings to a CSV file
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
         FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=1024),
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=2)
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=32000)
     ]
     schema = CollectionSchema(fields=fields)
     collection = Collection(name=COLLECTION_NAME, schema=schema)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # Prepare entities correctly
     entities = [
         preprocessed_data,  # List of strings for the "data" field
-        vector_res  # List of embeddings, each is a list of floats
+        vector_res  # Flattened list of embeddings
     ]
 
     # Insert data into Milvus
