@@ -25,12 +25,15 @@ if __name__ == '__main__':
     vector_res = encoder.model_wrapper.encode(texts=preprocessed_data, flat=True)
     ic("Vector Results first sample:", str(vector_res[0])[:150] + "...")
 
+    # Flatten embeddings for insertion
+    flattened_embeddings = [embedding for sublist in vector_res for embedding in sublist]
+
     # Save embeddings to a CSV file
     csv_file_path = 'embeddings.csv'
     with open(csv_file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["ID", "Text", "Embedding"])
-        for idx, (text, embedding) in enumerate(zip(preprocessed_data, vector_res)):
+        for idx, (text, embedding) in enumerate(zip(preprocessed_data, flattened_embeddings)):
             writer.writerow([idx, text, embedding])
 
     ic(f"Embeddings saved to {csv_file_path}")
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     # Prepare entities correctly
     entities = [
         preprocessed_data,  # List of strings for the "data" field
-        vector_res  # Flattened list of embeddings
+        flattened_embeddings  # Flattened list of embeddings
     ]
 
     # Insert data into Milvus
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     except Exception as e:
         ic("Error during insertion:", str(e))
 
-    # Create index and load collections
+    # Create index and load collection
     index_params = {
         "index_type": "IVF_FLAT",
         "metric_type": "L2",
