@@ -1,0 +1,54 @@
+[
+    {
+        "period": "month",
+        "instance": "2024-05",
+        "site": "JL2TusaRpf",
+        "metric": "internet-avail-cc",
+        "end": "2021-06-01 00:00:00",
+        "start": "2021-05-01 00:00:00",
+        "updated": "2024-06-01 00:00:00",
+        "percentage-overall": 61.77294954471705,
+        "percentage-EUROPE": 94.75046803087335,
+        "percentage-NORTH_AMERICA": 43.31919178633932,
+        "percentage-ASIA": 565
+    },
+    {
+        "period": "month",
+        "instance": "2024-05",
+        "site": "fe6TpbZyVS",
+        "metric": "internet-avail-cc",
+        "end": "2021-06-01 00:00:00",
+        "start": "2021-05-01 00:00:00",
+        "updated": "2024-06-01 00:00:00",
+        "percentage-overall": 86.41087885788771,
+        "percentage-EUROPE": 67.29100617987277,
+        "percentage-NORTH_AMERICA": 58.63666673637409,
+        "percentage-ASIA": 605
+    },
+    {
+        "period": "month",
+        "instance": "2024-05",
+        "site": "gDVTusUFDP",
+        "metric": "internet-avail-cc",
+        "end": "2021-06-01 00:00:00",
+        "start": "2021-05-01 00:00:00",
+        "updated": "2024-06-01 00:00:00",
+        "percentage-overall": 57.63431324796435,
+        "percentage-EUROPE": 1.7863078698109214,
+        "percentage-NORTH_AMERICA": 65.62815483260293,
+        "percentage-ASIA": 650
+    },
+    {
+        "period": "month",
+        "instance": "2024-05",
+        "site": "JC71yqsk8A",
+        "metric": "internet-avail-cc",
+        "end": "2021-06-01 00:00:00",
+        "start": "2021-05-01 00:00:00",
+        "updated": "2024-06-01 00:00:00",
+        "percentage-overall": 43.61812647921766,
+        "percentage-EUROPE": 65.24412415119355,
+        "percentage-NORTH_AMERICA": 72.0182706806937,
+        "percentage-ASIA": 474
+    }
+]

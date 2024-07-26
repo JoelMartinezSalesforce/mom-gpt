@@ -1,0 +1,13 @@
+[project]
+name = "llm-egpt"
+version = "0.1"
+description = "adds einstein gpt support to llm"
+readme = "README.md"
+authors = [{name = "Charles Lavery"}]
+dependencies = [
+    "llm", "requests"
+]
+requires-python = ">3.7"
+
+[project.entry-points.llm]
+egpt = "llm_egpt"

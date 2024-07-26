@@ -213,7 +213,7 @@ proxy:
   maxFieldNum: 64
   maxVectorFieldNum: 4 # Maximum number of vector fields in a collection.
   maxShardNum: 16 # Maximum number of shards in a collection
-  maxDimension: 32768 # Maximum dimension of a vector
+  maxDimension: 70000 # Maximum dimension of a vector
   # Whether to produce gin logs.\n
   # please adjust in embedded Milvus: false
   ginLogging: true

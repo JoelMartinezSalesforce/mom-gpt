@@ -1,10 +1,52 @@
-from pymilvus import connections, Collection, FieldSchema, CollectionSchema, DataType
-import random
-from pymilvus import AnnSearchRequest
+import os
+import numpy as np
+from pymilvus import connections, Collection
+from sklearn.feature_extraction.text import TfidfVectorizer
+from llm_plugin_epgt.llm_egpt import EGPT
+
+
+class Response:
+    def __init__(self):
+        self.response_json = None
+
+    def text(self):
+        return self.response_json.get('text') if self.response_json else None
+
+
+class Prompt:
+    def __init__(self, prompt, options, system=None):
+        self.prompt = prompt
+        self.options = options
+        self.system = system
+
+
+# Example usage
+def main(query, user_prompt):
+    key = os.getenv('EPGT_API_KEY')
+    org_id = os.getenv('ORG_ID')
+
+    # Instantiate EGPT model with your API key
+    egpt_model = EGPT(key=key)
+
+    # Define prompt options
+    options = EGPT.Options()
+    options.org_id = org_id
+
+    # Create a prompt object
+    prompt = Prompt(
+        f"Can you explain this information and each field and percentages with the actual values given the user prompt and provide at the end an interpretation of the values'{user_prompt}' : {query}",
+        options)
+
+    # Create a response object
+    response = Response()
+
+    # Execute the model to get a response
+    responses = list(egpt_model.execute(prompt, stream=False, response=response, conversation=None))
+
+    print(responses[0])
 
 
 if __name__ == '__main__':
-
     # Connect to Milvus
     connections.connect(
         alias="default",
@@ -14,93 +56,38 @@ if __name__ == '__main__':
         port='19530'
     )
 
-    # Create schema
-    fields = [
-        FieldSchema(name="film_id", dtype=DataType.INT64, is_primary=True),
-        FieldSchema(name="filmVector", dtype=DataType.FLOAT_VECTOR, dim=5),  # Vector field for film vectors
-        FieldSchema(name="posterVector", dtype=DataType.FLOAT_VECTOR, dim=5)]  # Vector field for poster vectors
-
-    schema = CollectionSchema(fields=fields, enable_dynamic_field=False)
-
-    # Create collection
-    collection = Collection(name="test_collection", schema=schema)
-
-    # Create index for each vector field
-    index_params = {
+    search_params = {
         "metric_type": "L2",
-        "index_type": "IVF_FLAT",
-        "params": {"nlist": 128},
+        "params": {"nprobe": 10},
     }
 
-    collection.create_index("filmVector", index_params)
-    collection.create_index("posterVector", index_params)
+    print("Performing a single vector search...")
 
-    # Generate random entities to insert
-    entities = []
+    COLLECTION_NAME = "health_data_cons_final"
+    health_embeddings = Collection(name=COLLECTION_NAME)
 
-    for _ in range(1000):
-        # generate random values for each field in the schema
-        film_id = random.randint(1, 1000)
-        film_vector = [random.random() for _ in range(5)]
-        poster_vector = [random.random() for _ in range(5)]
+    prompt = input("Your Prompt: ")
 
-        # create a dictionary for each entity
-        entity = {
-            "film_id": film_id,
-            "filmVector": film_vector,
-            "posterVector": poster_vector
-        }
+    vocabulary = [
+        "period", "instance", "site", "metric", "end", "start", "updated", "percentage",
+        "percentage-EUROPE", "percentage-NORTH_AMERICA", "percentage-ASIA", "power-p95",
+        "power-max", "percentage-OCEANIA", "power-avg", "percentage-max", "sum", "percentage-p95",
+        "max", "percentage-CHINA"
+    ]
 
-        # add the entity to the list
-        entities.append(entity)
+    # Set max_features to 329 to ensure exactly 329 dimensions
+    vectorizer = TfidfVectorizer(max_features=329, vocabulary=vocabulary)
 
-    collection.insert(entities)
+    # TfidfVectorizer expects a list of documents
+    vector_res = vectorizer.fit_transform([prompt]).toarray()
 
-    # Create ANN search request 1 for filmVector
-    query_filmVector = [
-        [0.8896863042430693, 0.370613100114602, 0.23779315077113428, 0.38227915951132996, 0.5997064603128835]]
+    print(f"Embeddings: {vector_res}")
+    print(f"Embeddings shape: {vector_res.shape}")
 
-    search_param_1 = {
-        "data": query_filmVector,  # Query vector
-        "anns_field": "filmVector",  # Vector field name
-        "param": {
-            "metric_type": "L2",  # This parameter value must be identical to the one used in the collection schema
-            "params": {"nprobe": 10}
-        },
-        "limit": 2  # Number of search results to return in this AnnSearchRequest
-    }
-    request_1 = AnnSearchRequest(**search_param_1)
-
-    # Create ANN search request 2 for posterVector
-    query_posterVector = [
-        [0.02550758562349764, 0.006085637357292062, 0.5325251250159071, 0.7676432650114147, 0.5521074424751443]]
-
-    search_param_2 = {
-        "data": query_posterVector,  # Query vector
-        "anns_field": "posterVector",  # Vector field name
-        "param": {
-            "metric_type": "L2",  # This parameter value must be identical to the one used in the collection schema
-            "params": {"nprobe": 10}
-        },
-        "limit": 2  # Number of search results to return in this AnnSearchRequest
-    }
-    request_2 = AnnSearchRequest(**search_param_2)
-
-    # Store these two requests as a list in `reqs`
-    reqs = [request_1, request_2]
-
-    from pymilvus import WeightedRanker
-
-    # Use WeightedRanker to combine results with specified weights
-    # Assign weights of 0.8 to text search and 0.2 to image search
-    rerank = WeightedRanker(0.8, 0.2)
-
-    collection.load()
-
-    res = collection.hybrid_search(
-        reqs,  # List of AnnSearchRequests created in step 1
-        rerank,  # Reranking strategy specified in step 2
-        limit=2  # Number of final search results to return
-    )
+    # Directly use the embedding vectors for Milvus search
+    res = health_embeddings.search(vector_res, "embeddings", search_params, limit=5, output_fields=["id", "data"])
 
     print(res)
+
+    # Optionally, you can use the `main` function if needed
+    main(res, prompt)

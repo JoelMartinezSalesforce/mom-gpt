@@ -9,13 +9,13 @@ from services.model.constants.embedding_const import EmbeddingConstants
 
 class EmbeddingModelWrapper:
     _instance = None
-    _encoding_dimensions = 256  # Default dimension
+    _encoding_dimensions = EmbeddingConstants.FITTING_DIMENSIONS  # Default dimension
 
     def __init__(self):
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
 
     @classmethod
-    def instance(cls, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = 512):
+    def instance(cls, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = EmbeddingConstants.FITTING_DIMENSIONS):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialize(model, encoding_dimensions)
@@ -92,11 +92,11 @@ class EmbeddingModelWrapper:
             List[torch.Tensor]: A list of tensor embeddings, flattened if specified.
         """
         embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
+        print(len(embeddings))
         print("Shape of first embedding:", embeddings[0].shape)
-
+        print("Dim of first embedding:", embeddings[0].dim())
+        print(f"Size of first embedding: {embeddings[0].size()}")
         if flat:
-            # Flatten each tensor into a one-dimensional tensor
             return [emb.flatten() for emb in embeddings]
         else:
             return embeddings
-

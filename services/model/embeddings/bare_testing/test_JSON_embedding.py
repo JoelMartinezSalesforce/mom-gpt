@@ -11,19 +11,23 @@ if __name__ == '__main__':
     ic("Collections in the system:", utility.list_collections())
 
     # Drop existing collections
-    for collection_name in utility.list_collections():
-        if utility.has_collection(collection_name):
-            utility.drop_collection(collection_name)
-
-    ic("Collections in the system after global drop:", utility.list_collections())
+    if utility.has_collection("health_data"):
+        utility.drop_collection("health_data")
 
     # Initialize encoder
-    encoder = JSONEncoder(json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/models/data/dump/data_dump.json")
+    encoder = JSONEncoder(
+        json_file_path="/Users/joel.martinez/mom-gpt/services/model/embeddings/bare_testing/dump/data_dump.json"
+    )
 
     # Preprocess data and encode
     preprocessed_data = encoder.preprocess_for_encoding()
-    vector_res = encoder.model_wrapper.encode(texts=preprocessed_data, flat=True)
+    vector_res = encoder.model_wrapper.encode(texts=preprocessed_data[:5], flat=True)
     ic("Vector Results first sample:", str(vector_res[0])[:150] + "...")
+    ic("Length of embeddings list: ", len(vector_res))
+    for i, elem in enumerate(vector_res):
+        ic(f"length of individual embeddings: {i}: {len(elem)}")
+
+    flatted_vectors = [embedding for sublist in vector_res for embedding in sublist]
 
     # Save embeddings to a CSV file
     csv_file_path = 'embeddings.csv'
@@ -42,7 +46,7 @@ if __name__ == '__main__':
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
         FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=1024),
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=32000)
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=len(vector_res[0]))
     ]
     schema = CollectionSchema(fields=fields)
     collection = Collection(name=COLLECTION_NAME, schema=schema)
