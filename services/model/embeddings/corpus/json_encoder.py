@@ -8,7 +8,7 @@ from services.model.embeddings.embedding_model import EmbeddingModelWrapper
 
 
 class JSONEncoder:
-    def __init__(self, json_file_path, model_name: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R,
+    def __init__(self, json_file_path, model_name: EmbeddingConstants = EmbeddingConstants.STELLA_EN_1_5B,
                  num_workers=4):
         self.json_file_path = json_file_path
         self.model_wrapper = EmbeddingModelWrapper.instance(model_name, EmbeddingConstants.FITTING_DIMENSIONS)

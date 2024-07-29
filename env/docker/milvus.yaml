@@ -49,7 +49,7 @@ etcd:
     password:  # password for etcd authentication
 
 metastore:
-  type: etcd # Default value: etcd, Valid values: [etcd, tikv]
+  type: etcd # Default value: etcd, Valid values: [etcd, tikv] 
 
 # Related configuration of tikv, used to store Milvus metadata.
 # Notice that when TiKV is enabled for metastore, you still need to have etcd for service discovery.
@@ -97,12 +97,12 @@ minio:
   cloudProvider: aws
   # Custom endpoint for fetch IAM role credentials. when useIAM is true & cloudProvider is "aws".
   # Leave it empty if you want to use AWS default endpoint
-  iamEndpoint:
+  iamEndpoint: 
   logLevel: fatal # Log level for aws sdk log. Supported level:  off, fatal, error, warn, info, debug, trace
   region:  # Specify minio storage system location region
   useVirtualHost: false # Whether use virtual host mode for bucket
   requestTimeoutMs: 10000 # minio timeout for request time in milliseconds
-  # The maximum number of objects requested per batch in minio ListObjects rpc,
+  # The maximum number of objects requested per batch in minio ListObjects rpc, 
   # 0 means using oss client by default, decrease these configration if ListObjects timeout
   listObjectsMaxKeys: 0
 
@@ -137,11 +137,11 @@ pulsar:
 
 # If you want to enable kafka, needs to comment the pulsar configs
 # kafka:
-#   brokerList:
-#   saslUsername:
-#   saslPassword:
-#   saslMechanisms:
-#   securityProtocol:
+#   brokerList: 
+#   saslUsername: 
+#   saslPassword: 
+#   saslMechanisms: 
+#   securityProtocol: 
 #   ssl:
 #     enabled: false # whether to enable ssl mode
 #     tlsCert:  # path to client's public key (PEM) used for authentication
@@ -334,9 +334,9 @@ queryNode:
     enabled: true
     memoryLimit: 2147483648 # 2 GB, 2 * 1024 *1024 *1024
     readAheadPolicy: willneed # The read ahead policy of chunk cache, options: `normal, random, sequential, willneed, dontneed`
-    # options: async, sync, disable.
-    # Specifies the necessity for warming up the chunk cache.
-    # 1. If set to "sync" or "async" the original vector data will be synchronously/asynchronously loaded into the
+    # options: async, sync, disable. 
+    # Specifies the necessity for warming up the chunk cache. 
+    # 1. If set to "sync" or "async" the original vector data will be synchronously/asynchronously loaded into the 
     # chunk cache during the load process. This approach has the potential to substantially reduce query/search latency
     # for a specific duration post-load, albeit accompanied by a concurrent increase in disk usage;
     # 2. If set to "disable" original vector data will only be loaded into the chunk cache during search/query.
@@ -442,7 +442,7 @@ dataCoord:
     compactableProportion: 0.85
     # over (compactableProportion * segment max # of rows) rows.
     # MUST BE GREATER THAN OR EQUAL TO <smallProportion>!!!
-    # During compaction, the size of segment # of rows is able to exceed segment max # of rows by (expansionRate-1) * 100%.
+    # During compaction, the size of segment # of rows is able to exceed segment max # of rows by (expansionRate-1) * 100%. 
     expansionRate: 1.25
   autoUpgradeSegmentIndex: false # whether auto upgrade segment index to index engine's version
   enableCompaction: true # Enable data segment compaction
@@ -598,7 +598,7 @@ common:
     authorizationEnabled: false
     # The superusers will ignore some system check processes,
     # like the old password verification when updating the credential
-    superUsers:
+    superUsers: 
     tlsMode: 0
   session:
     ttl: 30 # ttl value when session granting a lease to register service

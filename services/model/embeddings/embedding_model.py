@@ -1,11 +1,10 @@
 import os
-from typing import List, Iterable
+from typing import List
 import torch
 from torch import Tensor
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from services.model.constants.embedding_const import EmbeddingConstants
-
 
 class EmbeddingModelWrapper:
     _instance = None
@@ -24,25 +23,13 @@ class EmbeddingModelWrapper:
     def _initialize(self, model, encoding_dimensions):
         self._encoding_dimensions = encoding_dimensions
         os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
-        self.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
-
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
         if self.device.type == 'cpu':
             raise RuntimeError("No suitable GPU or MPS found. A GPU or MPS is needed for optimal performance.")
-
         print(f"Running on device: {self.device}")
-
         self.tokenizer = AutoTokenizer.from_pretrained(model)
-        self.quantization_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
-        )
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model,
-            config=self.quantization_config
-        ).eval().to(self.device)
+        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16)
+        self.model = AutoModelForCausalLM.from_pretrained(model, config=self.quantization_config).eval().to(self.device)
 
     @property
     def encoding_dimensions(self):
@@ -60,43 +47,35 @@ class EmbeddingModelWrapper:
         return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
     def process_input(self, input_text: str) -> torch.Tensor:
-        """
-        Tokenize input text and generate embeddings using a pre-trained model.
-
-        Args:
-            input_text (str): Text to be encoded.
-
-        Returns:
-            torch.Tensor: Normalized embedding tensor.
-        """
-        batch_dict = self.tokenizer(input_text, max_length=self.encoding_dimensions, padding=True, truncation=True,
-                                    return_tensors="pt")
+        batch_dict = self.tokenizer(input_text, max_length=self.encoding_dimensions, padding=True, truncation=True, return_tensors="pt")
         batch_dict = {k: v.to(self.device) for k, v in batch_dict.items()}
         outputs = self.model(**batch_dict)
         last_hidden_states = outputs.last_hidden_state if hasattr(outputs, 'last_hidden_state') else outputs[0]
         embeddings = self.last_token_pool(last_hidden_states, batch_dict['attention_mask'])
         return torch.nn.functional.normalize(embeddings, p=2, dim=1)
 
-    import torch
-    from tqdm import tqdm
-
-    def encode(self, texts: List[str], flat: bool = False) -> List[torch.Tensor]:
+    def encode(self, texts: List[str], flat: bool = True) -> List[List[float]]:
         """
-        Encode a list of text strings into embeddings.
+        Encode a list of text strings into embeddings, converting them into lists of floats,
+        and flatten each embedding if specified.
 
         Args:
             texts (List[str]): A list of strings to be encoded.
-            flat (bool, optional): Whether to flatten each embedding individually.
+            flat (bool, optional): Whether to flatten each embedding individually. Default is True.
 
         Returns:
-            List[torch.Tensor]: A list of tensor embeddings, flattened if specified.
+            List[List[float]]: A list of lists of floats representing the embeddings, each embedding flattened.
         """
-        embeddings = [self.process_input(text) for text in tqdm(texts, desc="Encoding")]
-        print(len(embeddings))
-        print("Shape of first embedding:", embeddings[0].shape)
-        print("Dim of first embedding:", embeddings[0].dim())
-        print(f"Size of first embedding: {embeddings[0].size()}")
+        # Process each text to generate embeddings, then detach and move to CPU
+        embeddings = [self.process_input(text).detach().cpu().numpy() for text in tqdm(texts, desc="Encoding")]
+
+        # Flatten the embeddings if requested
         if flat:
-            return [emb.flatten() for emb in embeddings]
+            # Flatten each embedding to a single list of floats
+            return [emb.flatten().tolist() for emb in embeddings]
         else:
-            return embeddings
+            # Return as list of lists of floats without flattening
+            return [emb.tolist() for emb in embeddings]
+
+
+
