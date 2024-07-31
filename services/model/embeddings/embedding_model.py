@@ -1,20 +1,26 @@
+import logging
 import os
 from typing import List
 import torch
 from torch import Tensor
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+
+from logging.logging_manager.logger import Logger
 from services.model.constants.embedding_const import EmbeddingConstants
+
 
 class EmbeddingModelWrapper:
     _instance = None
     _encoding_dimensions = EmbeddingConstants.FITTING_DIMENSIONS  # Default dimension
+    _logger = Logger()
 
     def __init__(self):
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
 
     @classmethod
-    def instance(cls, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R, encoding_dimensions: int = EmbeddingConstants.FITTING_DIMENSIONS):
+    def instance(cls, model: EmbeddingConstants = EmbeddingConstants.SALESFORCE_2_R,
+                 encoding_dimensions: int = EmbeddingConstants.FITTING_DIMENSIONS):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialize(model, encoding_dimensions)
@@ -23,12 +29,15 @@ class EmbeddingModelWrapper:
     def _initialize(self, model, encoding_dimensions):
         self._encoding_dimensions = encoding_dimensions
         os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+        self.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
         if self.device.type == 'cpu':
             raise RuntimeError("No suitable GPU or MPS found. A GPU or MPS is needed for optimal performance.")
-        print(f"Running on device: {self.device}")
+        self._logger.info(f"Running on device: {self.device}")
         self.tokenizer = AutoTokenizer.from_pretrained(model)
-        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16)
+        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                                                      bnb_4bit_use_double_quant=True,
+                                                      bnb_4bit_compute_dtype=torch.bfloat16)
         self.model = AutoModelForCausalLM.from_pretrained(model, config=self.quantization_config).eval().to(self.device)
 
     @property
@@ -47,7 +56,8 @@ class EmbeddingModelWrapper:
         return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
     def process_input(self, input_text: str) -> torch.Tensor:
-        batch_dict = self.tokenizer(input_text, max_length=self.encoding_dimensions, padding=True, truncation=True, return_tensors="pt")
+        batch_dict = self.tokenizer(input_text, max_length=self.encoding_dimensions, padding=True, truncation=True,
+                                    return_tensors="pt")
         batch_dict = {k: v.to(self.device) for k, v in batch_dict.items()}
         outputs = self.model(**batch_dict)
         last_hidden_states = outputs.last_hidden_state if hasattr(outputs, 'last_hidden_state') else outputs[0]
@@ -76,6 +86,3 @@ class EmbeddingModelWrapper:
         else:
             # Return as list of lists of floats without flattening
             return [emb.tolist() for emb in embeddings]
-
-
-

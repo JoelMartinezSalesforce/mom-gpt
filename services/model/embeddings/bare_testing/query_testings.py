@@ -1,8 +1,10 @@
 import os
-import numpy as np
 from pymilvus import connections, Collection
 from sklearn.feature_extraction.text import TfidfVectorizer
-from llm_plugin_epgt.llm_egpt import EGPT
+
+from services.model.constants.embedding_const import EmbeddingConstants
+from services.model.llm_plugin_epgt.llm_egpt import EGPT
+from services.model.local.vectorizer import VectorizerEmbedding
 
 
 class Response:
@@ -68,18 +70,10 @@ if __name__ == '__main__':
 
     prompt = input("Your Prompt: ")
 
-    vocabulary = [
-        "period", "instance", "site", "metric", "end", "start", "updated", "percentage",
-        "percentage-EUROPE", "percentage-NORTH_AMERICA", "percentage-ASIA", "power-p95",
-        "power-max", "percentage-OCEANIA", "power-avg", "percentage-max", "sum", "percentage-p95",
-        "max", "percentage-CHINA"
-    ]
-
     # Set max_features to 329 to ensure exactly 329 dimensions
-    vectorizer = TfidfVectorizer(max_features=329, vocabulary=vocabulary)
+    vectorizer = VectorizerEmbedding(EmbeddingConstants.VOCABULARY)
 
-    # TfidfVectorizer expects a list of documents
-    vector_res = vectorizer.fit_transform([prompt]).toarray()
+    vector_res = vectorizer.vectorize_texts([prompt])
 
     # Directly use the embedding vectors for Milvus search
     res = health_embeddings.search(vector_res, "embeddings", search_params, limit=5, output_fields=["id", "data"])

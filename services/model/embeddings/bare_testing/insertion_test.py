@@ -1,7 +1,3 @@
-import os
-import sys
-import csv
-
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -23,18 +19,18 @@ if __name__ == '__main__':
     print("Collections in the system:", utility.list_collections())
 
     encoder = JSONEncoder(
-        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        json_file_path=
+        "/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
     )
 
     COLLECTION_NAME = "health_data_cons_final"
     preprocessed_data = encoder.preprocess_for_encoding()
 
-    vocab = [
-        "period", "instance", "site", "metric", "end", "start", "updated", "percentage",
-        "percentage-EUROPE", "percentage-NORTH_AMERICA", "percentage-ASIA", "power-p95",
-        "power-max", "percentage-OCEANIA", "power-avg", "percentage-max", "sum", "percentage-p95",
-        "max", "percentage-CHINA"
-    ]
+    print(preprocessed_data[0])
+
+    vocab = encoder.create_vocab(preprocessed_data, 0.5)
+
+    print(vocab)
 
     vectorizer = TfidfVectorizer(vocabulary=vocab, max_features=len(vocab))
     vector_res = vectorizer.fit_transform(preprocessed_data).toarray()
@@ -79,13 +75,5 @@ if __name__ == '__main__':
 
     search_params = {
         "metric_type": "L2",
-        "params": {"nprobe": 10},
+        "params": {"nprobe": 5},
     }
-
-    try:
-        print("Performing a single vector search...")
-        res = health_embeddings.search(vector_res[0], "embeddings", search_params, limit=5,
-                                       output_fields=["id", "data"])
-        print(f"Results of the vector search: \n{res}")
-    except Exception as e:
-        print(f"Error during vector search: {e}")

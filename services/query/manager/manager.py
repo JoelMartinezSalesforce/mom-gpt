@@ -30,7 +30,6 @@ class QueryManager:
         try:
             self.state_controller.set_current_state(QueryStates.RUNNING)
             collection = Collection(name=self.collection_name)
-            print("Performing a vector search...")
             self.state_controller.set_current_state(QueryStates.COMPLETED)
             return collection.search(vector, "embeddings", self.search_params, limit=5, output_fields=["id", "data"])
         except Exception as e:
