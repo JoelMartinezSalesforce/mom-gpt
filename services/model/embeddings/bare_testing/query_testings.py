@@ -81,9 +81,6 @@ if __name__ == '__main__':
     # TfidfVectorizer expects a list of documents
     vector_res = vectorizer.fit_transform([prompt]).toarray()
 
-    print(f"Embeddings: {vector_res}")
-    print(f"Embeddings shape: {vector_res.shape}")
-
     # Directly use the embedding vectors for Milvus search
     res = health_embeddings.search(vector_res, "embeddings", search_params, limit=5, output_fields=["id", "data"])
 

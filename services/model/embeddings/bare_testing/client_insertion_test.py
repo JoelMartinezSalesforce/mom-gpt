@@ -1,4 +1,3 @@
-import csv
 from pymilvus import connections, CollectionSchema, FieldSchema, DataType, Collection, utility
 from icecream import ic
 
@@ -18,12 +17,13 @@ if __name__ == '__main__':
 
     # Initialize encoder
     encoder = JSONEncoder(
-        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump"
+                       "/network_health_cons.json"
     )
 
     # Preprocess data and encode
     preprocessed_data = encoder.preprocess_for_encoding()
-    vector_res = encoder.model_wrapper.encode(texts=preprocessed_data[:10], flat=True)
+    vector_res = encoder.model_wrapper.encode(texts=preprocessed_data[:50], flat=True)
     ic("Vector Results first sample:", str(vector_res[0][:10]) + "...")
     ic("Length of embeddings list: ", len(vector_res))
 
@@ -31,14 +31,14 @@ if __name__ == '__main__':
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
         FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=len(vector_res[0])),
-        FieldSchema(name="color", dtype=DataType.VARCHAR, max_length=1024)  # Assuming color is a simple attribute
+        FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=1024)  # Assuming color is a simple attribute
     ]
     schema = CollectionSchema(fields=fields)
     collection = Collection(name=COLLECTION_NAME, schema=schema)
     ic(f"Collection '{COLLECTION_NAME}' created with schema.")
 
     # Prepare data for insertion
-    data = [{"vector": vector_res[i], "color": preprocessed_data[i]} for i in range(len(vector_res))]
+    data = [{"vector": vector_res[i], "data": preprocessed_data[i]} for i in range(len(vector_res))]
 
     try:
         insert_result = collection.insert(data)
