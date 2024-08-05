@@ -13,4 +13,6 @@ if __name__ == '__main__':
 
     vocabulary_1 = creator.create_vocab(preprocessed_texts)
     # vocabulary = encoder.create_vocab(preprocessed_texts)
-    print(list(vocabulary_1.keys()))
+    vocab = list(vocabulary_1.keys())
+    print(len(vocabulary_1))
+    print(vocab)
