@@ -1,40 +1,16 @@
-import json
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+from services.model.embeddings.corpus.json_encoder import JSONEncoder
+from services.model.embeddings.corpus.vocab import VocabularyCreator
 
-# Path to your JSON file
-file_path = 'path_to_your_file.json'
+if __name__ == '__main__':
+    encoder = JSONEncoder(
+        '/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json'
+    )
 
-# Field name from which to extract text
-field_name = 'description'
+    creator = VocabularyCreator(ngram_range=(1, 2))
+    preprocessed_texts = encoder.preprocess_for_encoding()
 
-# Initialize NLP tools
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-stop_words = set(stopwords.words('english'))
-lemmatizer = WordNetLemmatizer()
+    print(preprocessed_texts[0])
 
-# Vocabulary Set
-vocabulary = set()
-
-# Read and process the JSON file
-with open(file_path, 'r', encoding='utf-8') as file:
-    data = json.load(file)  # Load the whole JSON list
-
-    # Process each JSON object
-    for item in data:
-        description = item.get(field_name, '')  # Get the text from the specified field
-        if description:
-            # Tokenize and preprocess
-            tokens = word_tokenize(description.lower())
-            processed_tokens = [lemmatizer.lemmatize(word) for word in tokens if
-                                word.isalpha() and word not in stop_words]
-
-            # Update vocabulary
-            vocabulary.update(processed_tokens)
-
-# Print or use the vocabulary
-print("Vocabulary:", vocabulary)
+    vocabulary_1 = creator.create_vocab(preprocessed_texts)
+    # vocabulary = encoder.create_vocab(preprocessed_texts)
+    print(list(vocabulary_1.keys()))
