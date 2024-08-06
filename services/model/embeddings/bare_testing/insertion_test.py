@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     encoder = JSONEncoder(
         json_file_path=
-        "Path to json file"
+        "/Users/joel.martinez/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
     )
 
     COLLECTION_NAME = "health_data_cons_final"
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     print(preprocessed_data[0])
 
-    vocab = encoder.create_vocab(preprocessed_data, 0.5)
+    vocab = list(encoder.create_vocab(preprocessed_data).keys())
 
     print(vocab)
 

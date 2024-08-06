@@ -1,10 +1,9 @@
 import logging
 
-from icecream import ic
 from pymilvus import SearchResult
 
 from exceptions.query.query_exception import QueryException
-from services.model.constants.embedding_const import EmbeddingConstants
+from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.model.local.vectorizer import VectorizerEmbedding
 from services.query.manager.manager import QueryManager
 
@@ -19,14 +18,15 @@ logging.basicConfig(
 class Query:
     _logger = logging.getLogger(__name__)  # This retrieves a logger configured at the module level
 
-    def __init__(self, collection_name: str):
+    def __init__(self, collection_name: str, encoder: JSONEncoder):
         self.query_manager = QueryManager(collection_name)
         self._logger.info("Query system initialized. Ready to receive queries.")
+        self.encoder = encoder
 
     def perform_query(self, prompt) -> SearchResult:
         try:
             # Process the input to generate a vector
-            vectorizer = VectorizerEmbedding(EmbeddingConstants.VOCABULARY)
+            vectorizer = VectorizerEmbedding(encoder=self.encoder)
             vector = vectorizer.vectorize_texts([prompt])
 
             # Execute the search

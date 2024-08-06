@@ -2,14 +2,17 @@ from typing import List
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from services.model.constants.embedding_const import EmbeddingConstants
+from services.model.embeddings.corpus.json_encoder import JSONEncoder
 
 
 class VectorizerEmbedding:
-    def __init__(self, vocabulary: List[str]):
+    def __init__(self, encoder: JSONEncoder):
         """
         Initialize the VectorizerEmbedding with a predefined vocabulary.
         """
-        self.vocab = EmbeddingConstants.VOCABULARY
+
+        self.preprocessed = encoder.preprocess_for_encoding()
+        self.vocab = list(encoder.create_vocab(preprocessed_texts=self.preprocessed).keys())
         self.vectorizer = TfidfVectorizer(vocabulary=self.vocab, max_features=len(self.vocab))
 
     def vectorize_texts(self, texts):

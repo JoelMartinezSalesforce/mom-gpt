@@ -5,15 +5,12 @@ import torch
 from torch import Tensor
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-
-from logging.logging_manager.logger import Logger
 from services.model.constants.embedding_const import EmbeddingConstants
 
 
 class EmbeddingModelWrapper:
     _instance = None
     _encoding_dimensions = EmbeddingConstants.FITTING_DIMENSIONS  # Default dimension
-    _logger = Logger()
 
     def __init__(self):
         raise RuntimeError("This constructor should not be called directly. Use 'instance()' instead.")
@@ -33,7 +30,6 @@ class EmbeddingModelWrapper:
             'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
         if self.device.type == 'cpu':
             raise RuntimeError("No suitable GPU or MPS found. A GPU or MPS is needed for optimal performance.")
-        self._logger.info(f"Running on device: {self.device}")
         self.tokenizer = AutoTokenizer.from_pretrained(model)
         self.quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                                                       bnb_4bit_use_double_quant=True,
