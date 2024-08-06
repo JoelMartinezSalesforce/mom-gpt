@@ -51,7 +51,7 @@ class VocabularyCreator:
 
         # Process special characters and dates
         self.process_special_characters()
-        self.process_dates()
+        # self.process_dates()
 
         return self.vocab
 

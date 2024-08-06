@@ -1,13 +1,14 @@
 import json
 import re
 from collections import Counter
-from typing import List
+from typing import List, Dict
 
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 from services.model.constants.embedding_const import EmbeddingConstants
+from services.model.embeddings.corpus.vocab import VocabularyCreator
 
 
 class JSONEncoder:
@@ -17,6 +18,8 @@ class JSONEncoder:
         nltk.download('punkt')
         nltk.download('stopwords')
         self.stop_words = set(stopwords.words('english'))
+
+        self.creator = VocabularyCreator(ngram_range=(1, 2))
 
         self.data = self.load_json_file()
 
@@ -60,7 +63,7 @@ class JSONEncoder:
 
         return preprocessed_data
 
-    def create_vocab(self, preprocessed_texts: List[str], threshold: float = 0.5) -> List[str]:
+    def create_vocab(self, preprocessed_texts: List[str]) -> Dict[str, int]:
         """
         Creates a robust vocabulary from a list of strings of preprocessed data using pattern mining principles.
         Special attention is given to 'POD' followed by numbers, which are always included regardless of their frequency.
@@ -70,46 +73,7 @@ class JSONEncoder:
         threshold (float): The minimum fraction of documents a word must appear in to be included.
 
         Returns:
-        List[str]: A list of unique and significant vocabulary terms extracted from the preprocessed texts.
+        List[str]: A Dict of unique and significant vocabulary terms extracted from the preprocessed texts and their
+        numerical frequencies.
         """
-        word_counts = Counter()
-        pods = set()  # To store unique POD identifiers
-
-        for text in preprocessed_texts:
-            # Remove special characters and split by spaces
-            words = re.sub(r'[^\w\s]', '', text).split()
-            # Collect POD identifiers separately
-            pods.update(re.findall(r'\bpod\d+\b', text))
-
-            # Update counts with filtered words, excluding purely numeric and typical date patterns
-            filtered_words = [
-                word for word in words
-                if not re.fullmatch(r'\d+', word) and
-                   not re.fullmatch(r'\d{4}-\d{2}-\d{2}', word)
-            ]
-            word_counts.update(filtered_words)
-
-        # Determine the minimum occurrence count based on the threshold
-        min_occurrence = max(1, int(len(preprocessed_texts) * threshold))
-        # Filter vocabulary based on the occurrence threshold, ensuring numeric values are excluded
-        filtered_vocab = [
-            word for word, count in word_counts.items()
-            if count >= min_occurrence and not word.isdigit()
-        ]
-
-        # Convert set of POD identifiers to a list and combine with the filtered vocabulary
-        final_vocab = sorted(set(filtered_vocab) | pods)
-
-        return final_vocab
-
-
-    """
-    def create_vocab(self, preprocessed_texts: List[str], threshold: float = 0.5):
-        * determine the count of unique and significant vocabulary terms.
-        * fields will be added since fields are always important to add 
-        * determine the % of special characters inside the keys of the most counted fields and detemrine if important to add
-        * cut special characters only if needed otherwise maintain the information
-        * if a substring from a counted field contains special characters maintain as it is since that information is important
-        * if the information looks like a date make it be able to be added in a way that the user can pivot of that example 
-        'give me the data for july 2024 july might look like a number of a string but the user can also input the date as a number'
-    """
+        return self.creator.create_vocab(preprocessed_texts)
