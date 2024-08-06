@@ -1,18 +1,22 @@
+from icecream import ic
+
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
-from services.model.embeddings.corpus.vocab import VocabularyCreator
 
 if __name__ == '__main__':
-    encoder = JSONEncoder(
-        '/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json'
-    )
+    try:
+        path = input("Enter the JSON Object file path: ")
 
-    creator = VocabularyCreator(ngram_range=(1, 2))
-    preprocessed_texts = encoder.preprocess_for_encoding()
+        encoder = JSONEncoder(path)
 
-    print(preprocessed_texts[0])
+        preprocessed = encoder.preprocess_for_encoding()
 
-    vocabulary_1 = creator.create_vocab(preprocessed_texts)
-    # vocabulary = encoder.create_vocab(preprocessed_texts)
-    vocab = list(vocabulary_1.keys())
-    print(len(vocabulary_1))
-    print(vocab)
+        vocab = encoder.create_vocab(preprocessed)
+
+        ic(f"Preprocessed vocabulary: {preprocessed}\n")
+
+        ic(f"vocabulary: {list(vocab.keys())}\n")
+
+        ic(f"Length of vocabulary: {len(vocab)}\n")
+
+    except Exception as e:
+        print(e)
