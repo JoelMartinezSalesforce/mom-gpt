@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # Initialize encoder
     encoder = JSONEncoder(
-        json_file_path="/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        json_file_path="path to json file"
     )
 
     # Preprocess data and encode

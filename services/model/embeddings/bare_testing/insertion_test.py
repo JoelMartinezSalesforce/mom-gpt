@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     encoder = JSONEncoder(
         json_file_path=
-        "/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        "Path to json file"
     )
 
     COLLECTION_NAME = "health_data_cons_final"
