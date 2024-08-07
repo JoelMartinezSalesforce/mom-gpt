@@ -155,7 +155,7 @@ rocksmq:
   # please adjust in embedded Milvus: /tmp/milvus/rdb_data
   path: /var/lib/milvus/rdb_data
   lrucacheratio: 0.06 # rocksdb cache memory ratio
-  rocksmqPageSize: 67108864 # 64 MB, 64 * 1024 * 1024 bytes, The size of each page of messages in rocksmq
+  rocksmqPageSize: 100936452 # 64 MB, 64 * 1024 * 1024 bytes, The size of each page of messages in rocksmq
   retentionTimeInMinutes: 4320 # 3 days, 3 * 24 * 60 minutes, The retention time of the message in rocksmq.
   retentionSizeInMB: 8192 # 8 GB, 8 * 1024 MB, The retention size of the message in rocksmq.
   compactionInterval: 86400 # 1 day, trigger rocksdb compaction every day to remove deleted data
@@ -169,7 +169,7 @@ natsmq:
     storeDir: /var/lib/milvus/nats # Directory to use for JetStream storage of nats
     maxFileStore: 17179869184 # Maximum size of the 'file' storage
     maxPayload: 8388608 # Maximum number of bytes in a message payload
-    maxPending: 67108864 # Maximum number of bytes buffered for a connection Applies to client connections
+    maxPending: 100936452 # Maximum number of bytes buffered for a connection Applies to client connections
     initializeTimeout: 4000 # waiting for initialization of natsmq finished
     monitor:
       trace: false # If true enable protocol trace log messages
@@ -252,9 +252,9 @@ proxy:
   internalPort: 19529
   grpc:
     serverMaxSendSize: 268435456
-    serverMaxRecvSize: 67108864
+    serverMaxRecvSize: 100936452
     clientMaxSendSize: 268435456
-    clientMaxRecvSize: 67108864
+    clientMaxRecvSize: 100936452
 
 # Related configuration of queryCoord, used to manage topology and load balancing for the query nodes, and handoff from growing segments to sealed segments.
 queryCoord:
@@ -455,7 +455,7 @@ dataCoord:
     levelzero:
       forceTrigger:
         minSize: 8388608 # The minmum size in bytes to force trigger a LevelZero Compaction, default as 8MB
-        maxSize: 67108864 # The maxmum size in bytes to force trigger a LevelZero Compaction, default as 64MB
+        maxSize: 100936452 # The maxmum size in bytes to force trigger a LevelZero Compaction, default as 64MB
         deltalogMinNum: 10 # The minimum number of deltalog files to force trigger a LevelZero Compaction
         deltalogMaxNum: 30 # The maxmum number of deltalog files to force trigger a LevelZero Compaction, default as 30
   enableGarbageCollection: true

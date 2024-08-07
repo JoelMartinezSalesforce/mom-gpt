@@ -77,3 +77,16 @@ class JSONEncoder:
         numerical frequencies.
         """
         return self.creator.create_vocab(preprocessed_texts)
+
+    def preprocess_single_text(self, text: List[Dict[str, any]]) -> str:
+        """
+                    Preprocesses all JSON objects in the loaded data and encodes them using the embedding model.
+                    Uses a list comprehension to preprocess and filter out empty results.
+                    """
+        # Preprocess data and filter out any empty or whitespace-only results in one go
+        preprocessed_data = [
+            processed_text
+            for item in text
+            if (processed_text := self.preprocess_text(json.dumps(item))).strip()
+        ]
+        return ' '.join(preprocessed_data)

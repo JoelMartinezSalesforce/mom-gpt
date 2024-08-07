@@ -43,16 +43,14 @@ class TestMilvus(unittest.TestCase):
                          True, "Collection is Empty"), self.assertEqual(
             (len(collection.indexes) != 0), True, "Collection contains no indexes")
 
-    def test_milvus_query(self):
+    def test_milvus_query1(self):
 
         self.test_milvus_connection()
 
         self.test_collection_information(self.collection_name)
 
-        collection = Collection(self.collection_name)
-
         encoder = JSONEncoder(
-            "/Users/joel.martinez/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+            "Path to JSON file"
         )
 
         query = Query(self.collection_name, encoder)
@@ -86,7 +84,11 @@ class TestMilvus(unittest.TestCase):
             "percentage-CHINA": "NA"
         }
 
-        self.assertEquals(res[0][0].to_dict()['entity']['data'], )
+        res_groung_truth_preprocessed = encoder.preprocess_single_text([ground_truth])
+
+        self.assertEqual(res[0][0].to_dict()['entity']['data'], res_groung_truth_preprocessed, "Query failed data "
+                                                                                               "does not match ground"
+                                                                                               " truth")
 
 
 if __name__ == '__main__':
