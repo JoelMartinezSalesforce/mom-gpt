@@ -76,6 +76,10 @@ class JSONEncoder:
         List[str]: A Dict of unique and significant vocabulary terms extracted from the preprocessed texts and their
         numerical frequencies.
         """
+
+        # check if the file containing the vocabulary exists meang from the json file name we save it as the filename + vocab
+        # if it does not exists we create it if it does exist we return that and save it to
+        # vocabs/filename.json
         return self.creator.create_vocab(preprocessed_texts)
 
     def preprocess_single_text(self, text: List[Dict[str, any]]) -> str:
