@@ -138,22 +138,21 @@ class VocabularyCreator:
         :return: A dictionary with the vocabulary data if the file exists, otherwise an empty dictionary.
         """
         if collections_vocabulary_name is None:
-            print("No vocabulary file specified.")
             return {}
 
         base_dir = os.path.join(get_project_root(), 'vocabs')
-        vocab_file_path = os.path.join(base_dir, f"{collections_vocabulary_name}_vocab.json")
+        vocab_file_path = os.path.join(base_dir, f"{collections_vocabulary_name}.json")
 
         try:
             if os.path.exists(vocab_file_path):
                 with open(vocab_file_path, 'r') as file:
                     vocabulary = json.load(file)
-                print(f"Vocabulary loaded successfully from {vocab_file_path}.")
+
                 return vocabulary
             else:
-                print(f"No vocabulary file found at {vocab_file_path}.")
+                raise FileNotFoundError(f"The vocabulary file '{vocab_file_path}' does not exist.")
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from the vocabulary file: {e}")
+            raise RuntimeError(f"Error decoding JSON from the vocabulary file: {e}")
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 

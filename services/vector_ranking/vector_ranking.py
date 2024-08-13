@@ -1,8 +1,9 @@
 import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Any
 
 from numpy import ndarray
 from pymilvus import utility, connections
+from sklearn.metrics.pairwise import cosine_similarity
 
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.model.local.vectorizer import VectorizerEmbedding
@@ -53,30 +54,39 @@ class VectorRanking:
 
         return collections_vocabs_list
 
-    def generate_embeddings(self, prompt: str) -> Dict[Dict, ndarray]:
+    def generate_embeddings(self, prompt: str) -> Dict[Dict, ndarray[Any, Any]]:
         """
         Generates embeddings for the user's prompt using each collection's embedding model.
         """
         prompt_embeddings = {}
         for collection, model in self.embedding_models.items():
-            prompt_embedding = model.vectorize_texts([prompt])
+            # Assuming vectorize_texts returns an embedding array
+            prompt_embedding = model.vectorize_texts([prompt])[0]  # Take the first (and only) embedding
             prompt_embeddings[collection] = prompt_embedding
         return prompt_embeddings
 
-    def rank_collections(self, prompt: str) -> Optional[dict]:
+    def rank_collections(self, prompt: str) -> List[Tuple[Dict, Any]]:
         """
         Ranks collections based on the cosine similarity between the prompt embedding and each collection's
         model-generated embedding.
+
+        :returns List[Tuple[str, float]]: A list of tuples containing the collection name and its cosine similarity.
         """
         prompt_embeddings = self.generate_embeddings(prompt)
+        max_dim = max(len(v) for v in prompt_embeddings.values())
+
+        # Normalize and pad embeddings to ensure all are the same dimension
+        normalized_embeddings = {k: np.pad(v / np.linalg.norm(v), (0, max_dim - len(v)), 'constant')
+                                 for k, v in prompt_embeddings.items()}
+
         rankings = []
-        for collection, embedding in prompt_embeddings.items():
-            # Assuming there's a standard way to compare embeddings directly, perhaps against a collection-specific
-            # benchmark or centroid
-            similarity = np.linalg.norm(embedding)  # Example placeholder for direct comparison metric
+        prompt_vector = normalized_embeddings[next(iter(normalized_embeddings))]  # Use the first collection's vector as reference
+        for collection, embedding in normalized_embeddings.items():
+            # Calculate cosine similarity
+            similarity = cosine_similarity([prompt_vector], [embedding])[0][0]
             rankings.append((collection, similarity))
 
-        # Sort collections based on the comparison metric, highest first
+        # Sort collections based on similarity, highest first
         rankings.sort(key=lambda x: x[1], reverse=True)
-        best_collection = rankings[0][0] if rankings else None
-        return best_collection
+        return rankings
+

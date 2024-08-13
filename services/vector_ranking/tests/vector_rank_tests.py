@@ -18,7 +18,7 @@ class TestVector(unittest.TestCase):
 
         res = self.vector_ranking.rank_collections(prompt_to_rank)
 
-        self.assertEqual(res, expected_collection)
+        self.assertEqual(res[0][0], expected_collection)
 
 
 if __name__ == '__main__':
