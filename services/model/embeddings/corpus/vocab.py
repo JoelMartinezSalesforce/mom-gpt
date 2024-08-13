@@ -5,6 +5,8 @@ import re
 from collections import Counter
 from dateutil.parser import parse
 import numpy as np
+from icecream import ic
+
 from utils.utils import get_project_root
 
 
@@ -40,6 +42,9 @@ class VocabularyCreator:
         # Create n-grams
         ngrams = self.generate_ngrams(preprocessed_texts)
 
+        ic("Text from creator vocab: ", preprocessed_texts[:2])
+        ic(ngrams[:2])
+
         # Calculate frequencies
         word_counts = Counter(ngrams)
         total_words = sum(word_counts.values())
@@ -58,23 +63,16 @@ class VocabularyCreator:
 
         return self.vocab
 
-    def generate_ngrams(self, texts: List[str]):
+    def generate_ngrams(self, texts: List[str]) -> List[str]:
         """
         Generates n-grams from a list of text strings based on the configured ngram_range.
-
-        Args:
-            texts (List[str]): List of text strings from which to generate n-grams.
-
-        Returns:
-            List[str]: List of generated n-grams.
         """
-
         ngrams = []
+        ic("ngrams text: ", texts[:2])
         for text in texts:
-            cleaned_text = self.preprocess_text(text)
-            words = cleaned_text.split()
+            words = text.split()
             for n in range(self.ngram_range[0], self.ngram_range[1] + 1):
-                ngrams.extend([' '.join(words[i:i + n]).strip() for i in range(len(words) - n + 1)])
+                ngrams += [' '.join(words[i:i + n]) for i in range(len(words) - n + 1)]
         return ngrams
 
     def is_significant(self, term):
@@ -144,7 +142,7 @@ class VocabularyCreator:
             return {}
 
         base_dir = os.path.join(get_project_root(), 'vocabs')
-        vocab_file_path = os.path.join(base_dir, f"{collections_vocabulary_name}.json")
+        vocab_file_path = os.path.join(base_dir, f"{collections_vocabulary_name}_vocab.json")
 
         try:
             if os.path.exists(vocab_file_path):

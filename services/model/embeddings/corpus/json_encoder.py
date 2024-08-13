@@ -3,6 +3,7 @@ import os
 import re
 from typing import List, Dict
 import nltk
+from icecream import ic
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -66,7 +67,7 @@ class JSONEncoder:
             raise ValueError("No data loaded. Ensure a valid JSON file path is provided.")
 
         preprocessed_data = [
-            self.preprocess_text(json.dumps(item)).strip() for item in self.data if self.preprocess_text(json.dumps(item)).strip()
+            self.creator.preprocess_text(json.dumps(item)) for item in self.data
         ]
         return preprocessed_data
 
@@ -79,13 +80,15 @@ class JSONEncoder:
             raise ValueError("JSON file path must be provided to create or retrieve vocabulary.")
 
         base_filename = os.path.splitext(os.path.basename(self.json_file_path))[0]
-        vocab_dir = 'vocabs'
+        vocab_dir = self.base_dir / 'vocabs'
         vocab_file_path = os.path.join(vocab_dir, f'{base_filename}_vocab.json')
         os.makedirs(vocab_dir, exist_ok=True)
 
         if os.path.exists(vocab_file_path):
             with open(vocab_file_path, 'r') as file:
                 return json.load(file)
+
+        ic(preprocessed_texts[:2], "Text from Encoder")
 
         vocabulary = self.creator.create_vocab(preprocessed_texts)
         with open(vocab_file_path, 'w') as file:
