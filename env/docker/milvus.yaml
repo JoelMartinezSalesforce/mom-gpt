@@ -717,7 +717,7 @@ quotaAndLimits:
   limits:
     maxCollectionNum: 65536
     maxCollectionNumPerDB: 65536
-    maxInsertSize: -1 # maximum size of a single insert request, in bytes, -1 means no limit
+    maxInsertSize: -1 # maximum size of a single storage request, in bytes, -1 means no limit
     maxResourceGroupNumOfQueryNode: 1024 # maximum number of resource groups of query nodes
   limitWriting:
     # forceDeny false means dml requests are allowed (except for some
