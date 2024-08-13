@@ -1,6 +1,5 @@
 import unittest
 
-import numpy as np
 from icecream import ic
 
 from services.vector_ranking.vector_ranking import VectorRanking
@@ -17,6 +16,8 @@ class TestVector(unittest.TestCase):
         expected_collection = "health_data_cons_final"
 
         res = self.vector_ranking.rank_collections(prompt_to_rank)
+
+        ic(res)
 
         self.assertEqual(res[0][0], expected_collection)
 
