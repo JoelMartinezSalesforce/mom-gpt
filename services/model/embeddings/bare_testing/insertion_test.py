@@ -73,7 +73,5 @@ if __name__ == '__main__':
     health_embeddings.create_index("embeddings", index)
     health_embeddings.load()
 
-    search_params = {
-        "metric_type": "L2",
-        "params": {"nprobe": 5},
-    }
+
+

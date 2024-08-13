@@ -6,17 +6,13 @@ if __name__ == '__main__':
     try:
         path = input("Enter the JSON Object file path: ")
 
-        encoder = JSONEncoder(path)
+        encoder = JSONEncoder()
 
-        preprocessed = encoder.preprocess_for_encoding()
+        ic(f"Retrieving a vocab from a collection mame: 'network_health_cons_vocab'")
 
-        vocab = encoder.create_vocab(preprocessed)
+        res = encoder.get_vocab('network_health_cons_vocab')
 
-        ic(f"Preprocessed vocabulary: {preprocessed}\n")
-
-        ic(f"vocabulary: {list(vocab.keys())}\n")
-
-        ic(f"Length of vocabulary: {len(vocab)}\n")
+        ic(res)
 
     except Exception as e:
         print(e)

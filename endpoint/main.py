@@ -1,5 +1,7 @@
 import os
 from flask import Flask, request, jsonify
+
+from services.model.embeddings.corpus.json_encoder import JSONEncoder
 from services.model.llm_plugin_epgt.wrapper.EGPT_wrapper import EGPTQueryHandler
 from services.query.main.query_main import Query
 
@@ -8,13 +10,18 @@ app = Flask(__name__)
 
 def functional(user_prompt: str):
     try:
+
+
         key = os.getenv('EPGT_API_KEY')
         org_id = os.getenv('ORG_ID')
         if not key or not org_id:
             raise EnvironmentError("API key or Organization ID is not set in environment variables.")
 
         egpt_model = EGPTQueryHandler(api_key=key, org_id=org_id)
-        query = Query("health_data_cons_final")
+        encoder = JSONEncoder()
+
+        # Place holder collection should replace with the vector ranker
+        query = Query("health_data_cons_final", encoder.get_vocab("health_data_cons_final"))
         prompt = user_prompt.lower()
         res = query.ingest(prompt)
         print(f"Query results: {res}")

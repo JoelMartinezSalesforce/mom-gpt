@@ -1,5 +1,4 @@
 import unittest
-from typing import Collection
 
 from icecream import ic
 from pymilvus import utility, connections, Collection
@@ -86,9 +85,11 @@ class TestMilvus(unittest.TestCase):
 
         res_groung_truth_preprocessed = encoder.preprocess_single_text([ground_truth])
 
-        self.assertEqual(res[0][0].to_dict()['entity']['data'], res_groung_truth_preprocessed, "Query failed data "
-                                                                                               "does not match ground"
-                                                                                               " truth")
+        # Testing if the best result (or ranked best result) is exactly what we expect to prompt engineer the LLM
+
+        self.assertEqual(res[0]['entity']['data'], res_groung_truth_preprocessed, "Query failed data "
+                                                                                  "does not match ground"
+                                                                                  " truth")
 
 
 if __name__ == '__main__':

@@ -1,21 +1,20 @@
-from typing import List
+from typing import List, Dict
 
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from services.model.constants.embedding_const import EmbeddingConstants
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
 
 
 class VectorizerEmbedding:
-    def __init__(self, encoder: JSONEncoder):
+    def __init__(self, vocabulary: Dict[str, any]):
         """
         Initialize the VectorizerEmbedding with a predefined vocabulary.
         """
-
-        self.preprocessed = encoder.preprocess_for_encoding()
-        self.vocab = list(encoder.create_vocab(preprocessed_texts=self.preprocessed).keys())
+        self.vocab = list(vocabulary.keys())
         self.vectorizer = TfidfVectorizer(vocabulary=self.vocab, max_features=len(self.vocab))
 
-    def vectorize_texts(self, texts):
+    def vectorize_texts(self, texts) -> np.ndarray:
         """
         Converts a list of preprocessed text data into TF-IDF vectors using the predefined vocabulary.
 
@@ -29,7 +28,7 @@ class VectorizerEmbedding:
         vector_res = self.vectorizer.fit_transform(texts).toarray()
         return vector_res
 
-    def update_vocabulary(self, new_vocab):
+    def update_vocabulary(self, new_vocab) -> None:
         """
         Updates the vectorizer with a new vocabulary and adjusts the maximum number of features.
 

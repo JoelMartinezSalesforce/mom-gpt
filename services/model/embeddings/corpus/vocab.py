@@ -1,8 +1,11 @@
-from typing import List
+import json
+import os
+from typing import List, Dict
 import re
 from collections import Counter
 from dateutil.parser import parse
 import numpy as np
+from utils.utils import get_project_root
 
 
 class VocabularyCreator:
@@ -68,8 +71,8 @@ class VocabularyCreator:
 
         ngrams = []
         for text in texts:
-            # Ensure proper splitting by also removing unwanted special characters at this step
-            words = re.sub(f"[{re.escape(self.special_characters)}]", ' ', text).split()
+            cleaned_text = self.preprocess_text(text)
+            words = cleaned_text.split()
             for n in range(self.ngram_range[0], self.ngram_range[1] + 1):
                 ngrams.extend([' '.join(words[i:i + n]).strip() for i in range(len(words) - n + 1)])
         return ngrams
@@ -106,6 +109,11 @@ class VocabularyCreator:
             updated_vocab[cleaned_word] = updated_vocab.get(cleaned_word, 0) + count
         self.vocab = updated_vocab
 
+    def preprocess_text(self, text):
+        # Regular expression to remove special characters or numbers before words
+        cleaned_text = re.sub(r'\b[\W\d_]+', '', text)
+        return cleaned_text.lower()
+
     def process_dates(self):
         """
         Processes the vocabulary to format terms recognized as dates into a standard form and adjust their counts.
@@ -123,3 +131,32 @@ class VocabularyCreator:
             except ValueError:
                 updated_vocab[word] = updated_vocab.get(word, 0) + count
         self.vocab = updated_vocab
+
+    def get_vocabulary(self, collections_vocabulary_name: str = None) -> Dict[str, int]:
+        """
+        Retrieves the vocabulary from a specified JSON file in the 'vocabs' directory.
+
+        :param collections_vocabulary_name: Name of the vocabulary file (without '.json' extension).
+        :return: A dictionary with the vocabulary data if the file exists, otherwise an empty dictionary.
+        """
+        if collections_vocabulary_name is None:
+            print("No vocabulary file specified.")
+            return {}
+
+        base_dir = os.path.join(get_project_root(), 'vocabs')
+        vocab_file_path = os.path.join(base_dir, f"{collections_vocabulary_name}.json")
+
+        try:
+            if os.path.exists(vocab_file_path):
+                with open(vocab_file_path, 'r') as file:
+                    vocabulary = json.load(file)
+                print(f"Vocabulary loaded successfully from {vocab_file_path}.")
+                return vocabulary
+            else:
+                print(f"No vocabulary file found at {vocab_file_path}.")
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from the vocabulary file: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+
+        return {}
