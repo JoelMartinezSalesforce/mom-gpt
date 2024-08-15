@@ -17,8 +17,8 @@ class JSONEncoder:
     def __init__(self, json_file_path=None):
         self.json_file_path = json_file_path
 
-        nltk.download('punkt')
-        nltk.download('stopwords')
+        nltk.download('punkt', quiet=True)
+        nltk.download('stopwords', quiet=True)
         self.stop_words = set(stopwords.words('english'))
 
         self.creator = VocabularyCreator(ngram_range=(1, 2))
@@ -67,7 +67,7 @@ class JSONEncoder:
             raise ValueError("No data loaded. Ensure a valid JSON file path is provided.")
 
         preprocessed_data = [
-            self.creator.preprocess_text(json.dumps(item)) for item in self.data
+            self.preprocess_text(json.dumps(item)) for item in self.data
         ]
         return preprocessed_data
 

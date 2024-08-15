@@ -1,3 +1,4 @@
+from icecream import ic
 from pymilvus import connections, Collection, SearchResult
 
 from exceptions.query.query_exception import QueryException

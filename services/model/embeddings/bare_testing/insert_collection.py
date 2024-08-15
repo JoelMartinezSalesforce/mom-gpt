@@ -18,9 +18,13 @@ if __name__ == '__main__':
 
     print("Collections in the system:", utility.list_collections())
 
+    '''
+    Extract to const
+    '''
+
     encoder = JSONEncoder(
         json_file_path=
-        "/Users/isaacpadilla/milvus-dir/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        "/Users/joel.martinez/mom-gpt/services/model/embeddings/bare_testing/dump/network_health_cons.json"
     )
 
     COLLECTION_NAME = "health_data_cons_final"
@@ -42,7 +46,7 @@ if __name__ == '__main__':
 
     fields = [
         FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
-        FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=512),
+        FieldSchema(name="data", dtype=DataType.VARCHAR, max_length=max(len(elem) for elem in preprocessed_data)),
         FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=embedding_dim)
     ]
 

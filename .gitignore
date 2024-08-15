@@ -1,0 +1,8 @@
+.env
+env/docker/volumes
+env/docker/volumes/
+.venv
+/services/model/embeddings/bare_testing/dump
+/services/model/embeddings/bare_testing/dump/
+.idea
+services/model/embeddings/__pycache__

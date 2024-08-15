@@ -1,6 +1,7 @@
 import logging
 from typing import List, Dict
 
+from icecream import ic
 from nltk.lm import Vocabulary
 from pymilvus import SearchResult
 
@@ -32,6 +33,7 @@ class Query:
             vector = vectorizer.vectorize_texts([prompt])
 
             # Execute the search
+            ic("Starting Query process performing search with prompt: {}".format(prompt))
             result = self.query_manager.perform_search(vector)
             self._logger.info("Query executed successfully.")
             return [elem.to_dict() for elem in list(result[0])]
@@ -47,4 +49,5 @@ class Query:
     def ingest(self, prompt: str) -> List[Dict[str, any]]:
         # Main method to start the query process
         self._logger.info("Starting query process...")
+        ic("Starting Query process")
         return self.perform_query(prompt)
