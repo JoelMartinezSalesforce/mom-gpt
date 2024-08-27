@@ -10,6 +10,9 @@ def register_models(register):
     register(EGPT())
 
 def generate_chat_response(messages, key, gateway_url, model, org_id, client_feature_id, llm_provider):
+    """
+    reference : https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/apis/rest/#operation/generations
+    """
     # TODO: need to add CA cert validation for the falcon cert chain instead of ignoring
     resp = requests.post(f"{gateway_url}/v1.0/chat/generations", json={
         "model": model,
