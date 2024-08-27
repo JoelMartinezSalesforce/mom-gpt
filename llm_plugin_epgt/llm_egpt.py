@@ -22,6 +22,7 @@ def generate_chat_response(messages, key, gateway_url, model, org_id, client_fea
         "x-llm-provider": llm_provider,
         "x-client-feature-id": client_feature_id,
         "authorization": f"API_KEY {key}",
+        "x-sfdc-core-tenant-id": f"core/prod1/{org_id}",
         'x-org-id': org_id,
     }, verify=False)
     resp.raise_for_status()
@@ -37,6 +38,7 @@ def generate_response(prompt, key, gateway_url, model, org_id, client_feature_id
         "x-llm-provider": llm_provider,
         "x-client-feature-id": client_feature_id,
         "authorization": f"API_KEY {key}",
+        "x-sfdc-core-tenant-id": f"core/prod1/{org_id}",
         'x-org-id': org_id,
     }, verify=False)
     resp.raise_for_status()
