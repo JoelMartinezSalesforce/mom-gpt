@@ -99,7 +99,7 @@ class NLPSummarization:
 if __name__ == "__main__":
     # Initialize the JSONEncoder class (assuming you have this setup)
     encoder = JSONEncoder(
-        json_file_path="/Users/joelmartinez/Documents/mom-gpt-project/mom-gpt-master/services/model/embeddings/bare_testing/dump/network_health_cons.json"
+        json_file_path="/Users/joel.martinez/Documents/mom-gpt-master/services/model/embeddings/bare_testing/dump/loodbalancer_pool.json"
     )
 
     text_list = encoder.preprocess_for_encoding()  # Assuming this returns a list of strings

@@ -85,6 +85,10 @@ class VectorRanking:
         else:
             return vector
 
+    import numpy as np
+    from sklearn.metrics.pairwise import cosine_similarity
+    from typing import List, Tuple
+
     def rank_collections(self, prompt: str, n_shots: int = 5) -> List[Tuple[str, float]]:
         """
         Ranks collections based on the cosine similarity between the prompt embedding and each collection's
@@ -113,7 +117,13 @@ class VectorRanking:
         for k, v in sorted_embeddings:
             # Pad or trim the embedding to match the reference dimension
             adjusted_v = self.pad_or_trim(v, reference_dim)
-            normalized_v = adjusted_v / np.linalg.norm(adjusted_v)  # Normalize
+            norm = np.linalg.norm(adjusted_v)
+            if norm == 0:
+                # If the norm is zero, return a zero vector to avoid division by zero
+                normalized_v = np.zeros_like(adjusted_v)
+            else:
+                normalized_v = adjusted_v / norm  # Normalize
+
             normalized_embeddings[k] = normalized_v
 
         rankings = []
@@ -132,7 +142,7 @@ class VectorRanking:
             collection_words = collection.split()  # Split collection name into words
             for word in collection_words:
                 if any(word.lower() in prompt_word.lower() for prompt_word in prompt.split()):
-                    aggregated_score += 0.1  # Arbitrary boost value
+                    aggregated_score += 5  # Arbitrary boost value
                     break  # Apply boost only once per collection
 
             rankings.append((collection, aggregated_score))
@@ -140,4 +150,5 @@ class VectorRanking:
         # Sort collections based on the aggregated score, highest first
         rankings.sort(key=lambda x: x[1], reverse=True)
         return rankings
+
 
