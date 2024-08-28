@@ -133,11 +133,3 @@ embeddings = model_wrapper.encode(["Sample text for embedding"], flat=True)
 ## Next Steps
 
 While MoMGPT provides robust support for embedding models and quantization, training custom embedding models is a possible next step. The current implementation does not provide training scripts for custom models, so users will need to implement their own training pipelines based on their specific requirements.
-
-## Contributing
-
-We welcome contributions from the community! Please feel free to submit a pull request or open an issue if you have any suggestions or bug reports. Ensure to follow the project's coding guidelines and commit message conventions.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
