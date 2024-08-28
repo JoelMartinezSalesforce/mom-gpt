@@ -58,8 +58,8 @@ MoMGPT provides a comprehensive solution for monitoring and managing data from S
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/momgpt-project.git
-   cd momgpt-project
+   git clone https://github.com/JoelMartinezSalesforce/mom-gpt.git
+   cd mom-gpt
    ```
 
 2. **Install Dependencies**:
