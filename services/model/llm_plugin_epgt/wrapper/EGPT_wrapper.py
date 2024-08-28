@@ -31,8 +31,10 @@ class EGPTQueryHandler:
 
         # Create a prompt object
         prompt = Prompt(
-            f"Can you explain this information and each field and percentages with the actual values given the "
-            f"user prompt and provide at the end an interpretation of the values'{user_prompt}' : {query}",
+            f"Can you explain the provided information, detailing each field and the percentages along with their "
+            f"actual values, based on the user prompt? At the end, please include an interpretation of the values. "
+            f"This is the user prompt: '{user_prompt}'. This is the information you need to use to respond: '"
+            f"{query}'. Always respond in the first person and format the information the best you can.",
             options)
 
         # Create a response object

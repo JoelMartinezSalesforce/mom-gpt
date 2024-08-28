@@ -142,7 +142,7 @@ class VectorRanking:
             collection_words = collection.split()  # Split collection name into words
             for word in collection_words:
                 if any(word.lower() in prompt_word.lower() for prompt_word in prompt.split()):
-                    aggregated_score += 5  # Arbitrary boost value
+                    aggregated_score += 1  # Arbitrary boost value
                     break  # Apply boost only once per collection
 
             rankings.append((collection, aggregated_score))

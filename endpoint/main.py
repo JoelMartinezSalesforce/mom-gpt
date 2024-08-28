@@ -45,11 +45,16 @@ def functional(data, user_prompt: str):
 
         prompt = user_prompt.lower()
         res = query.ingest(prompt)
-        print(f"Query results: {res}")
+        ic(f"Query results: {res}")
 
         messagesOb.append({"role": "user", "content": prompt})
+        print(type(res))
 
-        response = egpt_model.execute_query(prompt, res)
+        data_list = [elem['entity']['data'] for elem in res]
+
+        ic(data_list)
+
+        response = egpt_model.execute_query(prompt, data_list)
 
         slack_client.chat_postMessage(channel=data["event"]["channel"], text=response)
 
