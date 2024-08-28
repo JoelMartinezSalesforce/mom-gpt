@@ -1,7 +1,6 @@
-import numpy as np
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
 
-from icecream import ic
+import numpy as np
 from numpy import ndarray
 from pymilvus import utility, connections
 from sklearn.metrics.pairwise import cosine_similarity
@@ -85,8 +84,6 @@ class VectorRanking:
         else:
             return vector
 
-    import numpy as np
-    from sklearn.metrics.pairwise import cosine_similarity
     from typing import List, Tuple
 
     def rank_collections(self, prompt: str, n_shots: int = 5) -> List[Tuple[str, float]]:

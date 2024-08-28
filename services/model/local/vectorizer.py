@@ -1,9 +1,7 @@
-from typing import List, Dict
+from typing import Dict
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from services.model.constants.embedding_const import EmbeddingConstants
-from services.model.embeddings.corpus.json_encoder import JSONEncoder
 
 
 class VectorizerEmbedding:

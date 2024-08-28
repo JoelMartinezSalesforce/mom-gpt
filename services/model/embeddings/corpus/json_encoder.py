@@ -10,8 +10,8 @@ from nltk.tokenize import word_tokenize
 from services.model.embeddings.corpus.vocab import VocabularyCreator
 from utils.utils import get_project_root
 
-class JSONEncoder:
 
+class JSONEncoder:
     base_dir = get_project_root()
 
     def __init__(self, json_file_path=None):
@@ -105,7 +105,8 @@ class JSONEncoder:
             raise ValueError("JSON file path must be provided to preprocess data.")
 
         preprocessed_data = [
-            self.preprocess_text(json.dumps(item)).strip() for item in text if self.preprocess_text(json.dumps(item)).strip()
+            self.preprocess_text(json.dumps(item)).strip() for item in text if
+            self.preprocess_text(json.dumps(item)).strip()
         ]
         return ' '.join(preprocessed_data)
 

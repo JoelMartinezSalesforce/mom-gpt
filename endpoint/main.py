@@ -7,8 +7,8 @@ from flask_executor import Executor
 from icecream import ic
 from slack_sdk import WebClient
 
+from llm_plugin_epgt.wrapper.EGPT_wrapper import EGPTQueryHandler
 from services.model.embeddings.corpus.json_encoder import JSONEncoder
-from services.model.llm_plugin_epgt.wrapper.EGPT_wrapper import EGPTQueryHandler
 from services.query.main.query_main import Query
 from services.vector_ranking.vector_ranking import VectorRanking
 

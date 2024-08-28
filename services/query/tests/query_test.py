@@ -1,6 +1,6 @@
 import os
 
-from services.model.llm_plugin_epgt.wrapper.EGPT_wrapper import EGPTQueryHandler
+from llm_plugin_epgt.wrapper.EGPT_wrapper import EGPTQueryHandler
 from services.query.main.query_main import Query
 
 if __name__ == '__main__':

@@ -14,23 +14,23 @@ class ServerStorageStatus(Enum):
     HAS_ERROR = False
 
     def __init__(self):
-        '''
+        """
         Class for having record of what's the status of the server given that operations are being done
-        '''
+        """
         self.status = ServerStorageStatus.IS_AVAILABLE  # Default statis is available
 
     def change_state(self, state: Enum):
-        '''
+        """
         Chnage the state of the server given that operations are done or being made
 
         :param state:
         :return:
-        '''
+        """
         self.status = state
 
     def get_state(self) -> Enum:
-        '''
+        """
         Get the current state of the server
         :return status type: auto():
-        '''
+        """
         return self.status
