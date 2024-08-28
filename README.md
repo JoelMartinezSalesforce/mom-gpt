@@ -17,11 +17,11 @@ MoMGPT (Monitor of Monitors for Salesforce) is a system designed to manage and a
 
 ## Introduction
 
-MoMGPT provides a comprehensive solution for monitoring and managing Salesforce's NVT data across multiple data centers using the Milvus database. It employs advanced NLP techniques to analyze and interpret data, supporting embedding models to represent data in high-dimensional spaces effectively. With built-in quantization, MoMGPT optimizes the storage and processing of large datasets, ensuring efficient and accurate monitoring through a proprietary algorithm that extracts relevant information and maintains correct data correlation.
+MoMGPT provides a comprehensive solution for monitoring and managing data from Salesforce's various data centers. The system uses the Milvus database to store and analyze data collected by the Monitor of Monitors (MoM), a tool that aggregates and monitors telemetry from multiple sources within Salesforce. MoMGPT employs advanced NLP techniques to process and interpret this data, supporting embedding models to represent data in high-dimensional spaces effectively. The built-in quantization optimizes storage and processing, and the proprietary algorithm ensures the accurate extraction of significant information and the correct correlation between different data sources.
 
 ## Features
 
-- **Milvus Database Integration**: Efficiently stores and manages NVT data from various Salesforce data centers.
+- **Milvus Database Integration**: Efficiently stores and manages data from Salesforce's various data centers.
 - **Advanced NLP Techniques**: Enhances data processing, ensuring significant information extraction.
 - **Support for Embedding Models with Quantization**: Embedding models are integrated with quantization support, reducing data size while maintaining accuracy.
 - **Proprietary Algorithm**: Ensures accurate data correlation and extraction of significance between different data sources.
@@ -58,8 +58,8 @@ MoMGPT provides a comprehensive solution for monitoring and managing Salesforce'
 
 1. **Clone the Repository**:
    ```bash
-   [git clone https://github.com/yourusername/momgpt-project.git](https://github.com/JoelMartinezSalesforce/mom-gpt.git)
-   cd mom-gpt
+   git clone https://github.com/yourusername/momgpt-project.git
+   cd momgpt-project
    ```
 
 2. **Install Dependencies**:
@@ -105,7 +105,27 @@ MoMGPT provides a comprehensive solution for monitoring and managing Salesforce'
 
 ## Data Preparation
 
-The data preparation involves extracting NVT data from Salesforce and formatting it for analysis. Ensure that the data is correctly formatted before ingestion into Milvus. The provided scripts automate most of this process, but manual adjustments may be needed based on your specific requirements.
+### Inserting Data into Milvus
+
+To make data available for querying in Milvus, you can use the `insert_collection.py` script located in the `services/model/embeddings/bare_testing/` directory. This script is designed to insert JSON data into Milvus, but **some editing is required** to adapt it to your specific data format and schema.
+
+#### Steps to Insert Data:
+
+1. **Navigate to the Script Directory**:
+   ```bash
+   cd services/model/embeddings/bare_testing/
+   ```
+
+2. **Edit the `insert_collection.py` Script**:
+   Modify the script to fit your data format and requirements. Ensure that the JSON data is correctly parsed and matches the schema expected by Milvus.
+
+3. **Run the Edited Script**:
+   Once the script is properly configured, run it to insert your data into the Milvus database.
+   ```bash
+   python insert_collection.py
+   ```
+
+Ensure your JSON data is properly formatted and matches the expected schema for Milvus to enable successful insertion and querying.
 
 ## Embedding Models and Quantization
 
