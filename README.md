@@ -1,4 +1,4 @@
-# MoMGPT: Monitor of Monitors for Salesforce
+# MoMGPT
 
 MoMGPT (Monitor of Monitors for Salesforce) is a system designed to manage and analyze data collected from various Salesforce data centers. It utilizes a Milvus database to store and process this data effectively. By leveraging advanced Natural Language Processing (NLP) techniques, MoMGPT enhances data analysis, supports embedding models with built-in quantization, and ensures accurate data correlation through a proprietary algorithm.
 
